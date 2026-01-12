@@ -47,7 +47,6 @@
             background-size: 50px 50px;
             padding-top: 110px;
             padding-bottom: 40px;
-            /* For Ticker */
         }
 
         /* TYPOGRAPHY */
@@ -58,26 +57,6 @@
             text-transform: uppercase;
             letter-spacing: -1px;
             line-height: 1.0;
-        }
-
-        .glitch-text {
-            animation: glitch 3s infinite;
-        }
-
-        @keyframes glitch {
-
-            0%,
-            100% {
-                text-shadow: none;
-            }
-
-            2% {
-                text-shadow: -2px 2px 0 var(--primary);
-            }
-
-            4% {
-                text-shadow: 2px -2px 0 var(--secondary);
-            }
         }
 
         /* LAYOUT */
@@ -182,15 +161,8 @@
         }
 
         @keyframes blink {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         /* CARDS & TABLES */
@@ -258,35 +230,28 @@
             overflow-x: auto;
         }
 
-        .match-header {
-            padding: 15px 20px;
-            background: var(--surface-color);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* Updated Table Styles for More Columns */
-        .match-table {
+        .match-table-expanded {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             white-space: nowrap;
-            min-width: 1200px;
+            min-width: 1800px;
         }
 
-        .match-table th {
+        .match-table-expanded th {
             background: #050505;
             color: #888;
-            padding: 10px;
+            padding: 8px 6px;
             border-bottom: 2px solid #333;
             font-weight: bold;
             text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
-        .match-table td {
-            padding: 8px 10px;
+        .match-table-expanded td {
+            padding: 6px;
             border-bottom: 1px solid #222;
             text-align: center;
             vertical-align: middle;
@@ -318,6 +283,7 @@
             justify-content: flex-start;
         }
 
+        /* 이미지 태그로 변경됨 */
         .champ-img {
             width: 32px;
             height: 32px;
@@ -359,79 +325,29 @@
         }
 
         @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        /* LANE KINGDOM */
-        .lane-container {
-            display: flex;
-            gap: 20px;
-        }
-
-        .lane-card {
-            flex: 1;
-            border: 1px solid var(--border-color);
-            background: var(--surface-color);
-            text-align: center;
-            padding: 30px 15px;
-        }
-
-        .lane-score {
-            font-size: 2rem;
-            font-family: 'Black Han Sans';
-            color: var(--secondary);
-        }
-
-        /* TICKER */
-        .ticker-wrap {
+        /* LOGIN OVERLAY (NEW) */
+        #login-overlay {
             position: fixed;
-            bottom: 0;
+            top: 0;
             left: 0;
             width: 100%;
-            height: 40px;
-            background-color: var(--primary);
-            color: #000;
-            z-index: 999;
-            line-height: 40px;
-            font-weight: 800;
-            border-top: 2px solid #000;
-            font-family: 'Noto Sans KR';
-            font-size: 0.9rem;
+            height: 100%;
+            background-color: var(--bg-color);
+            background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 5000; /* Below loading (9999), above nav (1000) */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease-out;
         }
 
-        .ticker {
-            display: inline-block;
-            white-space: nowrap;
-            animation: ticker 40s linear infinite;
-        }
-
-        .ticker-item {
-            display: inline-block;
-            padding: 0 2rem;
-        }
-
-        .ticker-item:hover {
-            text-decoration: underline;
-            cursor: pointer;
-        }
-
-        @keyframes ticker {
-            0% {
-                transform: translate3d(0, 0, 0);
-            }
-
-            100% {
-                transform: translate3d(-100%, 0, 0);
-            }
-        }
-
-        /* BALANCER & RISING/FALLING */
+        /* BALANCER */
         .balancer-ui {
             background: #111;
             border: 2px solid var(--border-color);
@@ -481,48 +397,6 @@
             transform: translateY(-2px);
         }
 
-        /* EXPANDED MATCH TABLE */
-        .match-table-expanded {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.8rem;
-            white-space: nowrap;
-            min-width: 1800px;
-        }
-
-        .match-table-expanded th {
-            background: #050505;
-            color: #888;
-            padding: 8px 6px;
-            border-bottom: 2px solid #333;
-            font-weight: bold;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .match-table-expanded td {
-            padding: 6px;
-            border-bottom: 1px solid #222;
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .items-grid {
-            display: flex;
-            gap: 2px;
-            justify-content: center;
-        }
-
-        .item-img {
-            width: 24px;
-            height: 24px;
-            border-radius: 3px;
-            background: #333;
-            border: 1px solid #444;
-        }
-
         .match-block {
             margin-bottom: 30px;
             border: 1px solid #333;
@@ -538,14 +412,21 @@
             align-items: center;
         }
 
-        .match-date {
-            color: var(--warning);
-            font-weight: bold;
+        .match-date { color: var(--warning); font-weight: bold; }
+        .match-duration { color: #888; font-size: 0.9rem; }
+
+        .items-grid {
+            display: flex;
+            gap: 2px;
+            justify-content: center;
         }
 
-        .match-duration {
-            color: #888;
-            font-size: 0.9rem;
+        .item-img {
+            width: 24px;
+            height: 24px;
+            border-radius: 3px;
+            background: #333;
+            border: 1px solid #444;
         }
 
         /* LANE STATS */
@@ -568,21 +449,9 @@
             transform: translateY(-3px);
         }
 
-        .lane-icon {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-
-        .lane-name {
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 5px;
-        }
-
-        .lane-winrate {
-            font-size: 1.5rem;
-            font-family: 'Black Han Sans';
-        }
+        .lane-icon { font-size: 2rem; margin-bottom: 10px; }
+        .lane-name { font-weight: bold; color: #fff; margin-bottom: 5px; }
+        .lane-winrate { font-size: 1.5rem; font-family: 'Black Han Sans'; }
 
         /* CHAMPION RANKING */
         .champ-ranking-grid {
@@ -601,30 +470,25 @@
             transition: 0.2s;
         }
 
-        .champ-rank-card:hover {
-            border-color: var(--primary);
-        }
+        .champ-rank-card:hover { border-color: var(--primary); }
 
         .champ-rank-img {
             width: 48px;
             height: 48px;
             border-radius: 8px;
             background: #333;
+            overflow: hidden;
+        }
+        
+        .champ-rank-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
-        .champ-rank-info {
-            flex: 1;
-        }
-
-        .champ-rank-name {
-            font-weight: bold;
-            color: #fff;
-        }
-
-        .champ-rank-stats {
-            font-size: 0.85rem;
-            color: #888;
-        }
+        .champ-rank-info { flex: 1; }
+        .champ-rank-name { font-weight: bold; color: #fff; }
+        .champ-rank-stats { font-size: 0.85rem; color: #888; }
 
         /* CHART */
         .chart-container {
@@ -634,9 +498,7 @@
             margin-top: 20px;
         }
 
-        #eloChart {
-            max-height: 400px;
-        }
+        #eloChart { max-height: 400px; }
 
         /* SEARCH */
         .search-box {
@@ -649,11 +511,7 @@
             max-width: 400px;
             margin-bottom: 20px;
         }
-
-        .search-box:focus {
-            outline: none;
-            border-color: var(--secondary);
-        }
+        .search-box:focus { outline: none; border-color: var(--secondary); }
 
         /* TOAST MESSAGE */
         #toast-container {
@@ -677,15 +535,34 @@
         }
 
         @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
 
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+        /* TICKER */
+        .ticker-wrap {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background-color: var(--primary);
+            color: #000;
+            z-index: 999;
+            line-height: 40px;
+            font-weight: 800;
+            border-top: 2px solid #000;
+            font-family: 'Noto Sans KR';
+            font-size: 0.9rem;
+        }
+        .ticker {
+            display: inline-block;
+            white-space: nowrap;
+            animation: ticker 40s linear infinite;
+        }
+        .ticker-item {
+            display: inline-block;
+            padding: 0 2rem;
         }
     </style>
 </head>
@@ -697,10 +574,22 @@
         <div class="loader"></div>
         <div style="font-family: 'JetBrains Mono'; color: #fff; text-align: center;">
             CONNECTING TO GOOGLE SPREADSHEET...<br>
-            <!-- ID will be populated by JS -->
             <span id="display-sheet-id" style="font-size: 0.8rem; color: #666;">ID: INITIALIZING...</span>
             <div id="connection-status" style="margin-top:10px; font-weight:bold; font-size:0.9rem;"></div>
         </div>
+    </div>
+
+    <!-- LOGIN OVERLAY -->
+    <div id="login-overlay">
+        <h1 class="section-title glitch-text" style="font-size: 5rem; margin-bottom: 20px;">원픽 내전</h1>
+        <div class="section-subtitle" style="margin-bottom: 40px;">LIVE DATA CENTER</div>
+        
+        <div style="width: 100%; max-width: 500px; padding: 0 20px;">
+            <input type="text" id="login-input" class="search-box" placeholder="소환사명을 입력하세요 (예: Faker)" style="font-size: 1.5rem; text-align: center; margin-bottom: 20px;" onkeyup="if(event.key === 'Enter') attemptLogin()">
+            <button class="btn-cyber" onclick="attemptLogin()" style="width: 100%; font-size: 1.5rem;">시스템 접속</button>
+            <button onclick="guestLogin()" style="background:none; border:none; color:#666; text-decoration:underline; cursor:pointer; margin-top:15px; font-size:0.9rem;">게스트로 입장하기</button>
+        </div>
+        <div id="login-msg" style="margin-top: 20px; color: var(--primary); min-height: 20px; font-weight:bold;"></div>
     </div>
 
     <!-- TOAST MSG -->
@@ -719,7 +608,6 @@
             <a href="#balancer">팀 밸런서</a>
         </div>
     </nav>
-
 
     <div class="sub-nav">
         <div id="status-text" style="color:#aaa;">
@@ -764,8 +652,7 @@
             <!-- RISING & FALLING -->
             <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 40px;">
                 <div style="border: 1px solid #333; padding: 30px; background: #0a0a0a;">
-                    <h3
-                        style="color: var(--success); margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+                    <h3 style="color: var(--success); margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;">
                         <i class="fa-solid fa-arrow-trend-up"></i> 최근 떡상 (MMR 급상승)
                     </h3>
                     <div id="rising-list">
@@ -774,8 +661,7 @@
                 </div>
 
                 <div style="border: 1px solid #333; padding: 30px; background: #0a0a0a;">
-                    <h3
-                        style="color: var(--primary); margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+                    <h3 style="color: var(--primary); margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;">
                         <i class="fa-solid fa-arrow-trend-down"></i> 최근 떡락 (MMR 급하락)
                     </h3>
                     <div id="falling-list">
@@ -783,7 +669,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </section>
 
@@ -907,7 +792,6 @@
         </div>
     </section>
 
-
     <!-- TICKER -->
     <div class="ticker-wrap">
         <div class="ticker" id="ticker-content">
@@ -918,15 +802,10 @@
     <script>
         // ==========================================
         // [설정 영역]
-        // 연결 테스트를 위해 testMode를 false로 설정합니다.
         // ==========================================
         const CONFIG = {
-            // true일 경우 구글 시트 연결 없이 가짜 데이터를 보여줍니다.
             testMode: false, 
-
-            // 본인의 시트 ID (testMode가 false일 때만 사용됨)
-            sheetId: '13-xiV7yy5KcEn01u898cpvsv7N5lOLXUQMflTRFMSnY', 
-            
+            sheetId: 'YOUR_SHEET_ID_HERE', 
             sheets: {
                 ranking: 'ELO 순위표',
                 logs: 'Logs',
@@ -938,6 +817,53 @@
         };
         // ==========================================
 
+        // 한글 챔피언 이름 -> Riot Data Dragon Key 매핑 (공백 제거 후 검색)
+        const CHAMP_KR_TO_EN = {
+            "가렌": "Garen", "갈리오": "Galio", "갱플랭크": "Gangplank", "그라가스": "Gragas", "그레이브즈": "Graves",
+            "그웬": "Gwen", "나르": "Gnar", "나미": "Nami", "나서스": "Nasus", "나피리": "Naafiri",
+            "노틸러스": "Nautilus", "녹턴": "Nocturne", "누누": "Nunu", "누누와윌럼프": "Nunu", "니달리": "Nidalee", "니코": "Neeko",
+            "닐라": "Nilah", "다리우스": "Darius", "다이애나": "Diana", "드레이븐": "Draven", "라이즈": "Ryze",
+            "라칸": "Rakan", "람머스": "Rammus", "럭스": "Lux", "럼블": "Rumble", "레나타": "Renata", "레나타글라스크": "Renata",
+            "레넥톤": "Renekton", "레오나": "Leona", "렉사이": "RekSai", "렐": "Rell", "렝가": "Rengar",
+            "루시안": "Lucian", "룰루": "Lulu", "르블랑": "Leblanc", "리신": "LeeSin", "리븐": "Riven",
+            "리산드라": "Lissandra", "릴리아": "Lillia", "마스터이": "MasterYi", "마오카이": "Maokai", "마이": "MasterYi",
+            "말자하": "Malzahar", "말파이트": "Malphite", "모데카이저": "Mordekaiser", "모르가나": "Morgana", "문도": "DrMundo", "문도박사": "DrMundo",
+            "미스포츈": "MissFortune", "미포": "MissFortune", "밀리오": "Milio", "바드": "Bard", "바루스": "Varus",
+            "바이": "Vi", "베이가": "Veigar", "베인": "Vayne", "벡스": "Vex", "벨베스": "Belveth",
+            "벨코즈": "Velkoz", "볼리베어": "Volibear", "브라움": "Braum", "브라이어": "Briar", "브랜드": "Brand",
+            "블라디미르": "Vladimir", "블리츠크랭크": "Blitzcrank", "블리츠": "Blitzcrank", "비에고": "Viego", "빅토르": "Viktor", "뽀삐": "Poppy",
+            "사미라": "Samira", "사이온": "Sion", "사일러스": "Sylas", "샤코": "Shaco", "세나": "Senna",
+            "세라핀": "Seraphine", "세주아니": "Sejuani", "세트": "Sett", "소나": "Sona", "소라카": "Soraka",
+            "쉔": "Shen", "쉬바나": "Shyvana", "스웨인": "Swain", "스카너": "Skarner", "스몰더": "Smolder", "시비르": "Sivir",
+            "신짜오": "XinZhao", "신드라": "Syndra", "신지드": "Singed", "쓰레쉬": "Thresh",
+            "아리": "Ahri", "아무무": "Amumu", "아우렐리온솔": "AurelionSol", "아우솔": "AurelionSol", "아이번": "Ivern",
+            "아지르": "Azir", "아칼리": "Akali", "아크샨": "Akshan", "아트록스": "Aatrox", "아펠리오스": "Aphelios", "아펠": "Aphelios",
+            "알리스타": "Alistar", "암베사": "Ambessa", "애니": "Annie", "애니비아": "Anivia", "애쉬": "Ashe",
+            "야스오": "Yasuo", "에코": "Ekko", "엘리스": "Elise", "오공": "MonkeyKing", "오른": "Ornn", "오로라": "Aurora",
+            "오리아나": "Orianna", "올라프": "Olaf", "요네": "Yone", "요릭": "Yorick", "우디르": "Udyr",
+            "우르곳": "Urgot", "워윅": "Warwick", "유미": "Yuumi", "이렐리아": "Irelia", "이브린": "Evelynn", "이블린": "Evelynn",
+            "이즈리얼": "Ezreal", "일라오이": "Illaoi", "자르반": "JarvanIV", "자르반4세": "JarvanIV", "자야": "Xayah",
+            "자이라": "Zyra", "자크": "Zac", "잔나": "Janna", "잭스": "Jax", "제드": "Zed",
+            "제라스": "Xerath", "제리": "Zeri", "제이스": "Jayce", "조이": "Zoe", "직스": "Ziggs",
+            "진": "Jhin", "질리언": "Zilean", "징크스": "Jinx", "초가스": "Chogath", "카르마": "Karma",
+            "카밀": "Camille", "카사딘": "Kassadin", "카서스": "Karthus", "카시오페아": "Cassiopeia", "카이사": "Kaisa",
+            "카직스": "Khazix", "카타리나": "Katarina", "칼리스타": "Kalista", "케넨": "Kennen", "케이틀린": "Caitlyn",
+            "케인": "Kayn", "케일": "Kayle", "코그모": "KogMaw", "코르키": "Corki", "퀸": "Quinn",
+            "크산테": "KSante", "클레드": "Kled", "키아나": "Qiyana", "킨드레드": "Kindred", "타릭": "Taric",
+            "탈론": "Talon", "탈리야": "Taliyah", "탐켄치": "TahmKench", "트런들": "Trundle", "트리스타나": "Tristana",
+            "트린다미어": "Tryndamere", "트위스티드페이트": "TwistedFate", "트페": "TwistedFate", "트위치": "Twitch", "티모": "Teemo",
+            "파이크": "Pyke", "판테온": "Pantheon", "피들스틱": "Fiddlesticks", "피오라": "Fiora", "피즈": "Fizz",
+            "하이머딩거": "Heimerdinger", "헤카림": "Hecarim", "흐웨이": "Hwei"
+        };
+
+        // 이미지 주소 생성 함수
+        function getChampImg(koreanName) {
+            if (!koreanName) return 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Poro_0.jpg';
+            const cleanName = koreanName.replace(/\s+/g, '');
+            const enName = CHAMP_KR_TO_EN[cleanName] || CHAMP_KR_TO_EN[koreanName] || cleanName;
+            return `https://ddragon.leagueoflegends.com/cdn/14.2.1/img/champion/${enName}.png`;
+        }
+
         // Global Data Storage
         let GLOBAL_DATA = {
             ranking: [],
@@ -948,7 +874,7 @@
             eloTimeline: []
         };
 
-        let eloChart = null; // Chart.js instance
+        let eloChart = null; 
 
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
@@ -971,14 +897,14 @@
             return `https://docs.google.com/spreadsheets/d/${CONFIG.sheetId}/gviz/tq?tqx=${tqx}&sheet=${encodedSheet}&tq=${encodedQuery}`;
         }
 
-        // --- MOCK DATA GENERATORS (FOR TEST MODE) ---
+        // --- MOCK DATA (FOR TEST MODE) ---
         function getMockData(sheetName) {
-            if (sheetName === CONFIG.sheets.ranking) {
+             if (sheetName === CONFIG.sheets.ranking) {
                 return [
                     [1, 'Faker', 2500], [2, 'Chovy', 2450], [3, 'ShowMaker', 2300], 
                     [4, 'Zeka', 2250], [5, 'Bdd', 2100], [6, 'Clozer', 2050],
                     [7, 'Keria', 1900], [8, 'Zeus', 1850], [9, 'Oner', 1800],
-                    [10, 'Gumayusi', 1750], [11, 'Viper', 1700], [12, 'Lehends', 1650]
+                    [10, 'Gumayusi', 1750]
                 ];
             }
             if (sheetName === CONFIG.sheets.logs) {
@@ -986,39 +912,26 @@
                     ['2024-01-01', 1, 'BLUE', 'RED', '승리', 25],
                     ['2024-01-01', 2, 'RED', 'BLUE', '승리', 20],
                     ['2024-01-02', 3, 'BLUE', 'RED', '승리', -15],
-                    ['2024-01-03', 4, 'BLUE', 'RED', '승리', 30], // Rising example
-                    ['2024-01-04', 5, 'RED', 'BLUE', '승리', -25]  // Falling example
+                    ['2024-01-03', 4, 'BLUE', 'RED', '승리', 30], 
+                    ['2024-01-04', 5, 'RED', 'BLUE', '승리', -25] 
                 ];
             }
             if (sheetName === CONFIG.sheets.matches) {
-                // Generate a full match mock row
                 const createRow = (team, id, name, champ, win, k, d, a) => [
                     team, id, name, '', champ, 18, win, k, d, a, 50, 25000, 15000, 12000, 10, 2, 
                     '무한의 대검', '고속 연사포', '유령 무희', '도미닉 경의 인사', '피바라기', '광전사의 군화', '망원형 개조'
                 ];
                 return [
-                    // Match 5 (Recent)
-                    createRow('BLUE', 5, 'Faker', 'Orianna', '승리', 5, 2, 10),
-                    createRow('BLUE', 5, 'Oner', 'Lee Sin', '승리', 4, 3, 12),
-                    createRow('BLUE', 5, 'Zeus', 'Aatrox', '승리', 6, 4, 8),
-                    createRow('BLUE', 5, 'Gumayusi', 'Jinx', '승리', 8, 1, 5),
-                    createRow('BLUE', 5, 'Keria', 'Thresh', '승리', 1, 4, 15),
-                    createRow('RED', 5, 'Chovy', 'Azir', '패배', 3, 5, 2),
-                    createRow('RED', 5, 'Canyon', 'Nidalee', '패배', 2, 6, 4),
-                    createRow('RED', 5, 'Kiin', 'K Sante', '패배', 4, 4, 3),
-                    createRow('RED', 5, 'Peyz', 'Zeri', '패배', 5, 5, 3),
-                    createRow('RED', 5, 'Lehends', 'Rakan', '패배', 0, 7, 6),
-                    // Match 4
-                    createRow('BLUE', 4, 'Faker', 'Ahri', '승리', 10, 0, 8),
-                    createRow('BLUE', 4, 'Oner', 'Vi', '승리', 5, 2, 15),
-                    createRow('BLUE', 4, 'Zeus', 'Yone', '승리', 7, 3, 5),
-                    createRow('BLUE', 4, 'Gumayusi', 'Varus', '승리', 6, 2, 9),
-                    createRow('BLUE', 4, 'Keria', 'Bard', '승리', 2, 1, 18),
-                    createRow('RED', 4, 'Bdd', 'Taliyah', '패배', 2, 6, 3),
-                    createRow('RED', 4, 'Cuzz', 'Sejuani', '패배', 1, 5, 5),
-                    createRow('RED', 4, 'PerfecT', 'Renekton', '패배', 3, 4, 1),
-                    createRow('RED', 4, 'Deft', 'Ezreal', '패배', 4, 3, 2),
-                    createRow('RED', 4, 'BeryL', 'Nautilus', '패배', 0, 8, 4),
+                    createRow('BLUE', 5, 'Faker', '오리아나', '승리', 5, 2, 10),
+                    createRow('BLUE', 5, 'Oner', '리 신', '승리', 4, 3, 12),
+                    createRow('BLUE', 5, 'Zeus', '아트록스', '승리', 6, 4, 8),
+                    createRow('BLUE', 5, 'Gumayusi', '징크스', '승리', 8, 1, 5),
+                    createRow('BLUE', 5, 'Keria', '쓰레쉬', '승리', 1, 4, 15),
+                    createRow('RED', 5, 'Chovy', '아지르', '패배', 3, 5, 2),
+                    createRow('RED', 5, 'Canyon', '니달리', '패배', 2, 6, 4),
+                    createRow('RED', 5, 'Kiin', '크산테', '패배', 4, 4, 3),
+                    createRow('RED', 5, 'Peyz', '제리', '패배', 5, 5, 3),
+                    createRow('RED', 5, 'Lehends', '라칸', '패배', 0, 7, 6)
                 ];
             }
             if (sheetName === CONFIG.sheets.laneStats) {
@@ -1032,42 +945,32 @@
             }
             if (sheetName === CONFIG.sheets.champRanking) {
                 return [
-                    ['Orianna', 20, 12, 0, 0, 0, 0, '4.5', '60%'],
-                    ['Lee Sin', 18, 9, 0, 0, 0, 0, '3.2', '50%'],
-                    ['Aatrox', 15, 8, 0, 0, 0, 0, '2.8', '53%'],
-                    ['Jinx', 12, 7, 0, 0, 0, 0, '4.0', '58%'],
-                    ['Thresh', 10, 5, 0, 0, 0, 0, '3.5', '50%']
+                    ['오리아나', 20, 12, 0, 0, 0, 0, '4.5', '60%'],
+                    ['리 신', 18, 9, 0, 0, 0, 0, '3.2', '50%'],
+                    ['아트록스', 15, 8, 0, 0, 0, 0, '2.8', '53%'],
+                    ['징크스', 12, 7, 0, 0, 0, 0, '4.0', '58%'],
+                    ['쓰레쉬', 10, 5, 0, 0, 0, 0, '3.5', '50%']
                 ];
             }
             if (sheetName === CONFIG.sheets.eloTimeline) {
                 return [
                     [1, 'Game 1', 'Faker', 1025],
                     [2, 'Game 2', 'Faker', 1050],
-                    [3, 'Game 3', 'Faker', 1075],
-                    [4, 'Game 4', 'Faker', 1100],
-                    [5, 'Game 5', 'Faker', 1125],
-                    [1, 'Game 1', 'Chovy', 1020],
-                    [2, 'Game 2', 'Chovy', 1040],
-                    [3, 'Game 3', 'Chovy', 1030],
-                    [4, 'Game 4', 'Chovy', 1060],
-                    [5, 'Game 5', 'Chovy', 1050]
+                    [3, 'Game 3', 'Faker', 1075]
                 ];
             }
             return [];
         }
 
         function fetchData(sheetName, query) {
-            // TEST MODE LOGIC
             if (CONFIG.testMode) {
                 return new Promise((resolve) => {
-                    console.log(`[TEST MODE] Fetching mock data for ${sheetName}`);
                     setTimeout(() => {
                         resolve(getMockData(sheetName));
-                    }, 300); // Simulate slight delay
+                    }, 300);
                 });
             }
 
-            // REAL GOOGLE SHEET FETCH
             return new Promise((resolve) => {
                 const callbackName = `__sheetCb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
                 const script = document.createElement('script');
@@ -1107,6 +1010,54 @@
                 script.src = getQueryUrl(sheetName, query, callbackName);
                 document.head.appendChild(script);
             });
+        }
+
+        // --- LOGIN LOGIC ---
+        function attemptLogin() {
+            const input = document.getElementById('login-input');
+            const name = input.value.trim();
+            const msg = document.getElementById('login-msg');
+
+            if (!name) {
+                msg.textContent = "소환사명을 입력해주세요.";
+                return;
+            }
+
+            // Check if player exists in ranking
+            const exists = GLOBAL_DATA.ranking.some(row => row[1] && row[1].toLowerCase() === name.toLowerCase());
+            
+            if (!exists && !CONFIG.testMode) {
+                // If checking real data and user not found, you can block or warn
+                msg.textContent = `⚠️ '${name}' 선수의 데이터를 찾을 수 없습니다. (정확히 입력해주세요)`;
+                // For now, we allow entry but warn, or simply return to block
+                return; 
+            }
+
+            // Success Transition
+            const loginOverlay = document.getElementById('login-overlay');
+            loginOverlay.style.opacity = 0;
+            
+            setTimeout(() => {
+                loginOverlay.style.display = 'none';
+                
+                // Auto-search in ELO Timeline
+                const eloSearch = document.getElementById('elo-player-search');
+                if(eloSearch) {
+                    eloSearch.value = name;
+                    eloSearch.dispatchEvent(new Event('input'));
+                }
+                
+                showToast(`${name}님 환영합니다!`, 'success');
+            }, 500);
+        }
+
+        function guestLogin() {
+            const loginOverlay = document.getElementById('login-overlay');
+            loginOverlay.style.opacity = 0;
+            setTimeout(() => {
+                loginOverlay.style.display = 'none';
+                showToast('게스트 모드로 접속했습니다.');
+            }, 500);
         }
 
         // --- LOGIC: RISING/FALLING ---
@@ -1178,7 +1129,6 @@
         function initBalancerInputs() {
             const grid = document.getElementById('balancer-inputs');
             grid.innerHTML = '';
-            // Test mode defaults to Faker/Chovy etc.
             const defaults = CONFIG.testMode 
                 ? ['Faker', 'Chovy', 'ShowMaker', 'Zeka', 'Bdd', 'Clozer', 'Keria', 'Zeus', 'Oner', 'Gumayusi'] 
                 : ['player1', 'player2', 'player3', 'player4', 'player5', 'player6', 'player7', 'player8', '', ''];
@@ -1246,13 +1196,11 @@
                 return;
             }
 
-            // Group matches by 10 rows (5 blue + 5 red per match)
             const matchGroups = [];
             for (let i = 0; i < matchData.length; i += 10) {
                 matchGroups.push(matchData.slice(i, i + 10));
             }
 
-            // Show last 5 matches (most recent first)
             const recentMatches = matchGroups.slice(-5).reverse();
 
             container.innerHTML = recentMatches.map((match, idx) => {
@@ -1261,8 +1209,8 @@
                     const isBlue = teamVal.toUpperCase().includes('BLUE');
                     const resultVal = row[6] || '';
                     const isWin = resultVal === '승리';
+                    const champName = row[4] || '';
 
-                    // Items columns: 16-21 (아이템 1-6), 22 (장신구)
                     const items = [row[16], row[17], row[18], row[19], row[20], row[21]].filter(Boolean);
                     const trinket = row[22] || '';
 
@@ -1272,10 +1220,10 @@
                         <td>${row[1] || ''}</td>
                         <td style="text-align:left;">
                             <div class="champ-cell">
-                                <div class="champ-img" style="background: linear-gradient(135deg, #444, #222);"></div>
+                                <img class="champ-img" src="${getChampImg(champName)}" onerror="this.src='https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Poro_0.jpg'" alt="${champName}">
                                 <div>
                                     <div class="summoner-name">${row[2] || ''}</div>
-                                    <div style="font-size:0.7rem; color:#888;">${row[4] || ''}</div>
+                                    <div style="font-size:0.7rem; color:#888;">${champName}</div>
                                 </div>
                             </div>
                         </td>
@@ -1366,7 +1314,9 @@
 
                 return `
                 <div class="champ-rank-card">
-                    <div class="champ-rank-img" style="background: linear-gradient(135deg, #333, #111); display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:#666;">${idx + 1}</div>
+                    <div class="champ-rank-img">
+                        <img src="${getChampImg(name)}" onerror="this.src='https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Poro_0.jpg'" alt="${name}">
+                    </div>
                     <div class="champ-rank-info">
                         <div class="champ-rank-name">${name}</div>
                         <div class="champ-rank-stats">${games}전 ${wins}승 (${winrate})</div>
@@ -1442,20 +1392,16 @@
             const statusText = document.getElementById('status-text');
             const now = new Date();
             
-            // Dynamic ID Display (This fixes the user's issue)
             displayId.textContent = `ID: ${CONFIG.sheetId}`;
 
             updateTime.textContent = `LAST SYNC: ${now.toLocaleTimeString()}`;
 
             initBalancerInputs();
 
-            // Check if ID is default
-            if(CONFIG.sheetId === 'YOUR_SHEET_ID_HERE') {
+            if(CONFIG.sheetId === 'YOUR_SHEET_ID_HERE' && !CONFIG.testMode) {
                 showToast('구글 시트 ID를 설정해주세요!', 'error');
-                // Don't return, let it fail to show error clearly
             }
 
-            // Fetch all data in parallel
             const [rankingData, logsData, matchData, laneData, champData, timelineData] = await Promise.all([
                 fetchData(CONFIG.sheets.ranking, 'SELECT A, B, C'),
                 fetchData(CONFIG.sheets.logs, 'SELECT *'),
@@ -1465,7 +1411,6 @@
                 fetchData(CONFIG.sheets.eloTimeline, 'SELECT *')
             ]);
 
-            // DIAGNOSTIC LOGIC
             const isError = !rankingData && !logsData;
             const isEmpty = rankingData && rankingData.length === 0 && logsData && logsData.length === 0;
 
@@ -1474,8 +1419,9 @@
                 displayId.style.color = 'var(--primary)';
                 connectionStatus.style.color = 'var(--primary)';
                 connectionStatus.textContent = "CONNECTION FAILED (ERROR)";
-                // Keep loader but change text
-                return;
+                // Even on error, we might want to hide loader to show empty state/error logic, 
+                // but usually better to keep loader or show error screen. 
+                // For now, allow flow to proceed so login screen appears (maybe with error msg)
             }
 
             if (isEmpty) {
@@ -1483,13 +1429,10 @@
                 connectionStatus.style.color = 'var(--success)';
                 connectionStatus.textContent = "CONNECTED (EMPTY DATA)";
                 statusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color:var(--success)"></i> 연결 성공 (데이터 0건)`;
-                
-                // Allow rendering to proceed with empty data
             } else {
                  statusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color:var(--success)"></i> 구글 시트 실시간 연동됨`;
             }
 
-            // Store in global
             GLOBAL_DATA.ranking = rankingData || [];
             GLOBAL_DATA.logs = logsData || [];
             GLOBAL_DATA.matches = matchData || [];
@@ -1497,7 +1440,6 @@
             GLOBAL_DATA.champRanking = champData || [];
             GLOBAL_DATA.eloTimeline = timelineData || [];
 
-            // 1. Dashboard
             if (GLOBAL_DATA.logs) {
                 const matchIds = new Set(GLOBAL_DATA.logs.map(row => row[1]));
                 document.getElementById('dash-total-games').textContent = matchIds.size;
@@ -1513,7 +1455,6 @@
                 updateTicker(GLOBAL_DATA.logs);
             }
 
-            // 2. Ranking
             if (GLOBAL_DATA.ranking && GLOBAL_DATA.ranking.length > 0) {
                 const topPlayer = GLOBAL_DATA.ranking[0];
                 document.getElementById('dash-top-player').textContent = topPlayer[1];
@@ -1536,20 +1477,16 @@
                 document.getElementById('ranking-tbody').innerHTML = '<tr><td colspan="4" style="text-align:center; color:#666;">데이터가 없습니다.</td></tr>';
             }
 
-            // 3. Matches (expanded with all columns)
             renderMatches(matchData);
-
-            // 4. Lane Stats
             renderLaneStats(laneData);
-
-            // 5. Champion Ranking
             renderChampRanking(champData);
-
-            // 6. ELO Timeline Chart
             renderEloTimeline(timelineData);
 
             loader.style.opacity = 0;
-            setTimeout(() => loader.style.display = 'none', 500);
+            setTimeout(() => {
+                loader.style.display = 'none';
+                // Login overlay stays visible until user logs in
+            }, 500);
         }
 
         window.addEventListener('DOMContentLoaded', initApp);
