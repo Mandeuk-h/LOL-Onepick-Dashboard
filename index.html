@@ -190,16 +190,17 @@
         }
 
         .stat-value {
-            font-family: 'Black Han Sans';
+            font-family: 'Noto Sans KR';
             font-size: 3.5rem;
             color: #fff;
             line-height: 1;
+            font-weight: 700;
         }
 
         .stat-label {
             font-size: 1rem;
             color: var(--text-dim);
-            font-weight: 700;
+            font-weight: 400;
             margin-bottom: 10px;
         }
 
@@ -214,6 +215,7 @@
             padding: 15px;
             border-bottom: 2px solid var(--primary);
             color: var(--primary);
+            font-weight: 400;
         }
 
         .ranking-table td {
@@ -243,7 +245,7 @@
             color: #888;
             padding: 8px 6px;
             border-bottom: 2px solid #333;
-            font-weight: bold;
+            font-weight: 400;
             text-align: center;
             position: sticky;
             top: 0;
@@ -294,7 +296,7 @@
         }
 
         .summoner-name {
-            font-weight: bold;
+            font-weight: 400;
             color: #fff;
             text-align: left;
         }
@@ -329,7 +331,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* LOGIN OVERLAY (NEW) */
+        /* LOGIN OVERLAY */
         #login-overlay {
             position: fixed;
             top: 0;
@@ -345,6 +347,108 @@
             justify-content: center;
             align-items: center;
             transition: opacity 0.5s ease-out;
+        }
+
+        /* PLAYER PROFILE SECTION */
+        #player-profile {
+            display: none; /* Hidden by default */
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, rgba(15, 15, 15, 0.9), rgba(0,0,0,0.9));
+            border: 1px solid var(--primary);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        #player-profile::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 5px;
+            height: 100%;
+            background: var(--primary);
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 20px;
+        }
+
+        .profile-name {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .profile-tier {
+            font-size: 1.5rem;
+            font-family: 'JetBrains Mono';
+            padding: 5px 15px;
+            background: #222;
+            border-radius: 4px;
+            color: var(--success);
+        }
+
+        .profile-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .profile-stat-box {
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            border: 1px solid #333;
+        }
+
+        .profile-stat-label {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .profile-stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #eee;
+        }
+
+        .recent-matches-badges {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .match-badge {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            color: #000;
+        }
+        .badge-win { background: var(--success); }
+        .badge-loss { background: var(--primary); }
+
+        .most-champ-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .most-champ-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #444;
         }
 
         /* BALANCER */
@@ -585,8 +689,8 @@
         <div class="section-subtitle" style="margin-bottom: 40px;">LIVE DATA CENTER</div>
         
         <div style="width: 100%; max-width: 500px; padding: 0 20px;">
-            <input type="text" id="login-input" class="search-box" placeholder="소환사명을 입력하세요 (예: Faker)" style="font-size: 1.5rem; text-align: center; margin-bottom: 20px;" onkeyup="if(event.key === 'Enter') attemptLogin()">
-            <button class="btn-cyber" onclick="attemptLogin()" style="width: 100%; font-size: 1.5rem;">시스템 접속</button>
+            <input type="text" id="login-input" class="search-box" placeholder="소환사명을 입력하세요" style="font-size: 1.5rem; text-align: center; margin-bottom: 20px;" onkeyup="if(event.key === 'Enter') attemptLogin()">
+            <button class="btn-cyber" onclick="attemptLogin()" style="width: 100%; font-size: 1.5rem;">내 전적 검색 (로그인)</button>
             <button onclick="guestLogin()" style="background:none; border:none; color:#666; text-decoration:underline; cursor:pointer; margin-top:15px; font-size:0.9rem;">게스트로 입장하기</button>
         </div>
         <div id="login-msg" style="margin-top: 20px; color: var(--primary); min-height: 20px; font-weight:bold;"></div>
@@ -621,6 +725,44 @@
     <!-- DASHBOARD -->
     <section id="dashboard">
         <div class="container">
+            <!-- PLAYER PROFILE (HIDDEN BY DEFAULT) -->
+            <div id="player-profile">
+                <div class="profile-header">
+                    <div style="flex:1;">
+                        <span class="profile-tier" id="p-tier">-</span>
+                        <h2 class="profile-name" id="p-name">Player Name</h2>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:3rem; font-weight:bold; color:var(--secondary);" id="p-elo">1000</div>
+                        <div style="color:#888;">Current MMR</div>
+                    </div>
+                </div>
+                
+                <div class="profile-stats-grid">
+                    <div class="profile-stat-box">
+                        <div class="profile-stat-label">시즌 전적</div>
+                        <div class="profile-stat-value" id="p-record">-</div>
+                        <div style="color:#666; font-size:0.8rem;" id="p-winrate">-</div>
+                    </div>
+                    <div class="profile-stat-box">
+                        <div class="profile-stat-label">평균 KDA</div>
+                        <div class="profile-stat-value" style="color:var(--success);" id="p-kda">-</div>
+                    </div>
+                    <div class="profile-stat-box">
+                        <div class="profile-stat-label">모스트 챔피언</div>
+                        <div id="p-most-champs">
+                            <!-- JS Populated -->
+                        </div>
+                    </div>
+                    <div class="profile-stat-box">
+                        <div class="profile-stat-label">최근 5경기</div>
+                        <div class="recent-matches-badges" id="p-recent">
+                            <!-- JS Populated -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="section-header">
                 <div>
                     <div class="section-subtitle">LIVE STATUS</div>
@@ -812,7 +954,8 @@
                 matches: '경기기록',
                 laneStats: '라인별 승률',
                 champRanking: '챔프 순위',
-                eloTimeline: 'ELO 타임라인'
+                eloTimeline: 'ELO 타임라인',
+                db1: 'DB1' // 참여자 ID 목록 (B열)
             }
         };
         // ==========================================
@@ -871,7 +1014,8 @@
             matches: [],
             laneStats: [],
             champRanking: [],
-            eloTimeline: []
+            eloTimeline: [],
+            db1: [] // ID 목록
         };
 
         let eloChart = null; 
@@ -906,6 +1050,10 @@
                     [7, 'Keria', 1900], [8, 'Zeus', 1850], [9, 'Oner', 1800],
                     [10, 'Gumayusi', 1750]
                 ];
+            }
+            if (sheetName === CONFIG.sheets.db1) {
+                // Mock ID list
+                return [['Header'], ['Faker'], ['Chovy'], ['ShowMaker']];
             }
             if (sheetName === CONFIG.sheets.logs) {
                 return [
@@ -1023,13 +1171,22 @@
                 return;
             }
 
-            // Check if player exists in ranking
-            const exists = GLOBAL_DATA.ranking.some(row => row[1] && row[1].toLowerCase() === name.toLowerCase());
+            // DB1 check: row[1] matches name (assuming data starts from B2, so query fetches B column)
+            // Note: DB1 fetch query is 'SELECT B', so row[0] is the name.
+            let validUser = false;
             
-            if (!exists && !CONFIG.testMode) {
-                // If checking real data and user not found, you can block or warn
-                msg.textContent = `⚠️ '${name}' 선수의 데이터를 찾을 수 없습니다. (정확히 입력해주세요)`;
-                // For now, we allow entry but warn, or simply return to block
+            // Check in DB1 list first
+            if (GLOBAL_DATA.db1 && GLOBAL_DATA.db1.length > 0) {
+                validUser = GLOBAL_DATA.db1.some(row => row[0] && row[0].toString().toLowerCase() === name.toLowerCase());
+            }
+
+            // Fallback to Ranking list if DB1 is empty or not found (optional safety)
+            if (!validUser) {
+                validUser = GLOBAL_DATA.ranking.some(row => row[1] && row[1].toLowerCase() === name.toLowerCase());
+            }
+            
+            if (!validUser && !CONFIG.testMode) {
+                msg.textContent = `⚠️ 등록되지 않은 ID입니다. (관리자에게 문의하세요)`;
                 return; 
             }
 
@@ -1040,6 +1197,9 @@
             setTimeout(() => {
                 loginOverlay.style.display = 'none';
                 
+                // Show Personal Profile
+                renderPlayerProfile(name);
+
                 // Auto-search in ELO Timeline
                 const eloSearch = document.getElementById('elo-player-search');
                 if(eloSearch) {
@@ -1058,6 +1218,89 @@
                 loginOverlay.style.display = 'none';
                 showToast('게스트 모드로 접속했습니다.');
             }, 500);
+        }
+
+        // --- NEW: RENDER PLAYER PROFILE ---
+        function renderPlayerProfile(name) {
+            const profileSection = document.getElementById('player-profile');
+            const rankData = GLOBAL_DATA.ranking.find(r => r[1].toLowerCase() === name.toLowerCase());
+            
+            // Basic Info
+            const elo = rankData ? rankData[2] : 1000;
+            let tier = 'UNRANKED';
+            if (elo >= 1800) tier = 'MASTER';
+            else if (elo >= 1600) tier = 'DIAMOND';
+            else if (elo >= 1400) tier = 'PLATINUM';
+            else if (elo >= 1200) tier = 'GOLD';
+            else tier = 'SILVER';
+
+            document.getElementById('p-name').textContent = name;
+            document.getElementById('p-elo').textContent = elo;
+            document.getElementById('p-tier').textContent = tier;
+            
+            // Calculate Stats from Matches
+            // Match row indices: 2=Name, 4=Champ, 6=Result, 7=K, 8=D, 9=A
+            const myMatches = [];
+            GLOBAL_DATA.matches.forEach(m => {
+                // Check every row (10 rows per match)
+                if(m[2] && m[2].toLowerCase() === name.toLowerCase()) {
+                    myMatches.push(m);
+                }
+            });
+
+            const totalGames = myMatches.length;
+            const wins = myMatches.filter(m => m[6] === '승리').length;
+            const losses = totalGames - wins;
+            const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
+
+            document.getElementById('p-record').textContent = `${totalGames}전 ${wins}승 ${losses}패`;
+            document.getElementById('p-winrate').textContent = `승률 ${winRate}%`;
+
+            // KDA
+            let totalK = 0, totalD = 0, totalA = 0;
+            myMatches.forEach(m => {
+                totalK += (m[7] || 0);
+                totalD += (m[8] || 0);
+                totalA += (m[9] || 0);
+            });
+            const avgKda = totalD === 0 ? (totalK + totalA) : ((totalK + totalA) / totalD).toFixed(2);
+            document.getElementById('p-kda').textContent = `${avgKda}:1`;
+
+            // Most Champs
+            const champCounts = {};
+            myMatches.forEach(m => {
+                const c = m[4];
+                if(!champCounts[c]) champCounts[c] = { games: 0, wins: 0 };
+                champCounts[c].games++;
+                if(m[6] === '승리') champCounts[c].wins++;
+            });
+            
+            const sortedChamps = Object.keys(champCounts).sort((a,b) => champCounts[b].games - champCounts[a].games).slice(0, 3);
+            const mostHtml = sortedChamps.map(c => {
+                const data = champCounts[c];
+                const rate = Math.round((data.wins / data.games) * 100);
+                return `
+                <div class="most-champ-item">
+                    <img class="most-champ-img" src="${getChampImg(c)}" title="${c}">
+                    <div>
+                        <div style="font-weight:bold; font-size:0.9rem;">${c}</div>
+                        <div style="font-size:0.8rem; color:#888;">${data.games}게임 (${rate}%)</div>
+                    </div>
+                </div>`;
+            }).join('');
+            document.getElementById('p-most-champs').innerHTML = mostHtml || '<div style="color:#666;">기록 없음</div>';
+
+            // Recent 5
+            // Sort matches by date if possible, but assuming input order is chronological, take last 5
+            const recent = myMatches.slice(-5); // Reverse if needed
+            const recentHtml = recent.map(m => {
+                const isWin = m[6] === '승리';
+                return `<div class="match-badge ${isWin ? 'badge-win' : 'badge-loss'}">${isWin ? 'W' : 'L'}</div>`;
+            }).join('');
+            document.getElementById('p-recent').innerHTML = recentHtml || '<div style="color:#666;">-</div>';
+
+            // Show section
+            profileSection.style.display = 'block';
         }
 
         // --- LOGIC: RISING/FALLING ---
@@ -1399,16 +1642,17 @@
             initBalancerInputs();
 
             if(CONFIG.sheetId === 'YOUR_SHEET_ID_HERE' && !CONFIG.testMode) {
-                showToast('SHEET_ID_CHECK', 'error');
+                showToast('구글 시트 ID를 설정해주세요!', 'error');
             }
 
-            const [rankingData, logsData, matchData, laneData, champData, timelineData] = await Promise.all([
+            const [rankingData, logsData, matchData, laneData, champData, timelineData, db1Data] = await Promise.all([
                 fetchData(CONFIG.sheets.ranking, 'SELECT A, B, C'),
                 fetchData(CONFIG.sheets.logs, 'SELECT *'),
                 fetchData(CONFIG.sheets.matches, 'SELECT *'),
                 fetchData(CONFIG.sheets.laneStats, 'SELECT *'),
                 fetchData(CONFIG.sheets.champRanking, 'SELECT *'),
-                fetchData(CONFIG.sheets.eloTimeline, 'SELECT *')
+                fetchData(CONFIG.sheets.eloTimeline, 'SELECT *'),
+                fetchData(CONFIG.sheets.db1, 'SELECT B') // DB1 시트에서 ID 가져오기
             ]);
 
             const isError = !rankingData && !logsData;
@@ -1439,6 +1683,7 @@
             GLOBAL_DATA.laneStats = laneData || [];
             GLOBAL_DATA.champRanking = champData || [];
             GLOBAL_DATA.eloTimeline = timelineData || [];
+            GLOBAL_DATA.db1 = db1Data || [];
 
             if (GLOBAL_DATA.logs) {
                 const matchIds = new Set(GLOBAL_DATA.logs.map(row => row[1]));
