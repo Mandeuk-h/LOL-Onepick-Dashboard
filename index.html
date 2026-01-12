@@ -1052,8 +1052,8 @@
                 ];
             }
             if (sheetName === CONFIG.sheets.db1) {
-                // Mock ID list
-                return [['Header'], ['Faker'], ['Chovy'], ['ShowMaker']];
+                // Mock ID list: [ID, Tier, Score]
+                return [['Faker', 'CHALLENGER', 2500], ['Chovy', 'CHALLENGER', 2450], ['ShowMaker', 'GRANDMASTER', 2300]];
             }
             if (sheetName === CONFIG.sheets.logs) {
                 return [
@@ -1171,8 +1171,8 @@
                 return;
             }
 
-            // DB1 check: row[1] matches name (assuming data starts from B2, so query fetches B column)
-            // Note: DB1 fetch query is 'SELECT B', so row[0] is the name.
+            // DB1 check: row[0] is ID.
+            // Data fetched: [ID, Tier, Score]
             let validUser = false;
             
             // Check in DB1 list first
@@ -1223,16 +1223,13 @@
         // --- NEW: RENDER PLAYER PROFILE ---
         function renderPlayerProfile(name) {
             const profileSection = document.getElementById('player-profile');
-            const rankData = GLOBAL_DATA.ranking.find(r => r[1].toLowerCase() === name.toLowerCase());
+            
+            // NEW: Fetch from DB1 (columns B, D, H -> index 0, 1, 2)
+            const userDbData = GLOBAL_DATA.db1.find(row => row[0] && row[0].toString().toLowerCase() === name.toLowerCase());
             
             // Basic Info
-            const elo = rankData ? rankData[2] : 1000;
-            let tier = 'UNRANKED';
-            if (elo >= 1800) tier = 'MASTER';
-            else if (elo >= 1600) tier = 'DIAMOND';
-            else if (elo >= 1400) tier = 'PLATINUM';
-            else if (elo >= 1200) tier = 'GOLD';
-            else tier = 'SILVER';
+            const elo = userDbData ? userDbData[2] : 1000; // Column H (Score)
+            const tier = userDbData ? userDbData[1] : 'UNRANKED'; // Column D (Tier)
 
             document.getElementById('p-name').textContent = name;
             document.getElementById('p-elo').textContent = elo;
@@ -1369,16 +1366,35 @@
         }
 
         // --- LOGIC: BALANCER ---
+        function updatePlayerDatalist() {
+            let datalist = document.getElementById('player-options');
+            if (!datalist) {
+                datalist = document.createElement('datalist');
+                datalist.id = 'player-options';
+                document.body.appendChild(datalist);
+            }
+            datalist.innerHTML = '';
+            
+            // DB1 data structure: [Name, Tier, Score]
+            // Skip header if first row is not a name (optional basic check)
+            GLOBAL_DATA.db1.forEach((row, idx) => {
+                // If it's a mock header or empty
+                if (!row[0] || (idx === 0 && row[0] === 'ID')) return;
+                
+                const option = document.createElement('option');
+                option.value = row[0];
+                datalist.appendChild(option);
+            });
+        }
+
         function initBalancerInputs() {
             const grid = document.getElementById('balancer-inputs');
             grid.innerHTML = '';
-            const defaults = CONFIG.testMode 
-                ? ['Faker', 'Chovy', 'ShowMaker', 'Zeka', 'Bdd', 'Clozer', 'Keria', 'Zeus', 'Oner', 'Gumayusi'] 
-                : ['player1', 'player2', 'player3', 'player4', 'player5', 'player6', 'player7', 'player8', '', ''];
-                
-            defaults.forEach((name, i) => {
-                grid.innerHTML += `<input type="text" id="p${i}" value="${name}" placeholder="참가자 ${i + 1}">`;
-            });
+            
+            for (let i = 0; i < 10; i++) {
+                // Added list="player-options" for autocomplete
+                grid.innerHTML += `<input type="text" id="p${i}" list="player-options" placeholder="참가자 ${i + 1} 선택" autocomplete="off">`;
+            }
         }
 
         function calculateBalance() {
@@ -1388,8 +1404,12 @@
             for (let i = 0; i < 10; i++) {
                 const name = document.getElementById(`p${i}`).value.trim();
                 if (!name) continue;
-                const found = GLOBAL_DATA.ranking.find(r => r[1].toLowerCase() === name.toLowerCase());
+                
+                // Lookup MMR from DB1 instead of Ranking
+                // DB1 structure: [Name, Tier, Score] -> Index 0, 1, 2
+                const found = GLOBAL_DATA.db1.find(r => r[0] && r[0].toString().toLowerCase() === name.toLowerCase());
                 const mmr = found ? parseInt(found[2]) : 1000;
+                
                 players.push({ name, mmr });
             }
 
@@ -1639,7 +1659,7 @@
 
             updateTime.textContent = `LAST SYNC: ${now.toLocaleTimeString()}`;
 
-            initBalancerInputs();
+            // Moved initBalancerInputs call to after data fetch so datalist is populated
 
             if(CONFIG.sheetId === 'YOUR_SHEET_ID_HERE' && !CONFIG.testMode) {
                 showToast('구글 시트 ID를 설정해주세요!', 'error');
@@ -1652,7 +1672,7 @@
                 fetchData(CONFIG.sheets.laneStats, 'SELECT *'),
                 fetchData(CONFIG.sheets.champRanking, 'SELECT *'),
                 fetchData(CONFIG.sheets.eloTimeline, 'SELECT *'),
-                fetchData(CONFIG.sheets.db1, 'SELECT B') // DB1 시트에서 ID 가져오기
+                fetchData(CONFIG.sheets.db1, 'SELECT B, D, H') // DB1 시트에서 ID(B), Tier(D), Score(H) 가져오기
             ]);
 
             const isError = !rankingData && !logsData;
@@ -1684,6 +1704,10 @@
             GLOBAL_DATA.champRanking = champData || [];
             GLOBAL_DATA.eloTimeline = timelineData || [];
             GLOBAL_DATA.db1 = db1Data || [];
+
+            // Update Balancer Data List and Inputs
+            updatePlayerDatalist();
+            initBalancerInputs();
 
             if (GLOBAL_DATA.logs) {
                 const matchIds = new Set(GLOBAL_DATA.logs.map(row => row[1]));
