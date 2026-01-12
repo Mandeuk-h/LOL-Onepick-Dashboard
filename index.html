@@ -805,7 +805,7 @@
         // ==========================================
         const CONFIG = {
             testMode: false, 
-            sheetId: 'YOUR_SHEET_ID_HERE', 
+            sheetId: '13-xiV7yy5KcEn01u898cpvsv7N5lOLXUQMflTRFMSnY', 
             sheets: {
                 ranking: 'ELO 순위표',
                 logs: 'Logs',
@@ -1399,7 +1399,7 @@
             initBalancerInputs();
 
             if(CONFIG.sheetId === 'YOUR_SHEET_ID_HERE' && !CONFIG.testMode) {
-                showToast('13-xiV7yy5KcEn01u898cpvsv7N5lOLXUQMflTRFMSnY', 'error');
+                showToast('SHEET_ID_CHECK', 'error');
             }
 
             const [rankingData, logsData, matchData, laneData, champData, timelineData] = await Promise.all([
