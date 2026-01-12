@@ -1,0 +1,1560 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>원픽 내전 // LIVE DATA CENTER</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gothic+A1:wght@300;400;800&family=JetBrains+Mono:wght@400;800&family=Noto+Sans+KR:wght@300;400;700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* CORE THEME */
+        :root {
+            --bg-color: #050505;
+            --surface-color: #0f0f0f;
+            --border-color: #333;
+            --primary: #ff003c;
+            /* Cyber Red */
+            --secondary: #00f0ff;
+            /* Cyber Cyan */
+            --success: #39ff14;
+            /* Neon Green */
+            --warning: #ffea00;
+            /* Warning Yellow */
+            --text-main: #e0e0e0;
+            --text-dim: #666;
+            --grid-line: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Gothic A1', 'JetBrains Mono', sans-serif;
+            overflow-x: hidden;
+            background-image: linear-gradient(var(--grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 50px 50px;
+            padding-top: 110px;
+            padding-bottom: 40px;
+            /* For Ticker */
+        }
+
+        /* TYPOGRAPHY */
+        h1,
+        h2,
+        h3 {
+            font-family: 'Black Han Sans', 'Noto Sans KR', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            line-height: 1.0;
+        }
+
+        .glitch-text {
+            animation: glitch 3s infinite;
+        }
+
+        @keyframes glitch {
+
+            0%,
+            100% {
+                text-shadow: none;
+            }
+
+            2% {
+                text-shadow: -2px 2px 0 var(--primary);
+            }
+
+            4% {
+                text-shadow: 2px -2px 0 var(--secondary);
+            }
+        }
+
+        /* LAYOUT */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        section {
+            padding: 80px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 40px;
+            border-left: 10px solid var(--primary);
+            padding-left: 20px;
+        }
+
+        .section-title {
+            font-size: 4rem;
+            font-weight: 700;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: var(--secondary);
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        /* NAV */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: rgba(5, 5, 5, 0.95);
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            backdrop-filter: blur(5px);
+        }
+
+        .nav-logo {
+            font-family: 'Black Han Sans';
+            font-size: 1.5rem;
+            color: #fff;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            margin-left: 30px;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .sub-nav {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: #000;
+            border-bottom: 1px solid var(--primary);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+            gap: 20px;
+            font-size: 0.9rem;
+        }
+
+        .version-badge {
+            margin-left: auto;
+            font-family: 'JetBrains Mono';
+            color: var(--success);
+            font-weight: bold;
+            animation: blink 2s infinite;
+        }
+
+        .test-badge {
+            background: var(--warning);
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-family: 'JetBrains Mono';
+            margin-left: 10px;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* CARDS & TABLES */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 200px;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--secondary);
+        }
+
+        .stat-value {
+            font-family: 'Black Han Sans';
+            font-size: 3.5rem;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--text-dim);
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 1.1rem;
+        }
+
+        .ranking-table th {
+            text-align: left;
+            padding: 15px;
+            border-bottom: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .ranking-table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(15, 15, 15, 0.5);
+        }
+
+        /* MATCH HISTORY */
+        .match-history-container {
+            margin-top: 60px;
+            border: 1px solid var(--border-color);
+            background: #000;
+            overflow-x: auto;
+        }
+
+        .match-header {
+            padding: 15px 20px;
+            background: var(--surface-color);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Updated Table Styles for More Columns */
+        .match-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            min-width: 1200px;
+        }
+
+        .match-table th {
+            background: #050505;
+            color: #888;
+            padding: 10px;
+            border-bottom: 2px solid #333;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .match-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #222;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .team-blue {
+            border-left: 4px solid var(--secondary);
+            background: rgba(0, 240, 255, 0.02);
+        }
+
+        .team-red {
+            border-left: 4px solid var(--primary);
+            background: rgba(255, 0, 60, 0.02);
+        }
+
+        .result-win {
+            color: var(--secondary);
+            font-weight: bold;
+        }
+
+        .result-loss {
+            color: #666;
+        }
+
+        .champ-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: flex-start;
+        }
+
+        .champ-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            background: #333;
+            object-fit: cover;
+            border: 1px solid #444;
+        }
+
+        .summoner-name {
+            font-weight: bold;
+            color: #fff;
+            text-align: left;
+        }
+
+        /* LOADING OVERLAY */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loader {
+            border: 5px solid #333;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* LANE KINGDOM */
+        .lane-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .lane-card {
+            flex: 1;
+            border: 1px solid var(--border-color);
+            background: var(--surface-color);
+            text-align: center;
+            padding: 30px 15px;
+        }
+
+        .lane-score {
+            font-size: 2rem;
+            font-family: 'Black Han Sans';
+            color: var(--secondary);
+        }
+
+        /* TICKER */
+        .ticker-wrap {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background-color: var(--primary);
+            color: #000;
+            z-index: 999;
+            line-height: 40px;
+            font-weight: 800;
+            border-top: 2px solid #000;
+            font-family: 'Noto Sans KR';
+            font-size: 0.9rem;
+        }
+
+        .ticker {
+            display: inline-block;
+            white-space: nowrap;
+            animation: ticker 40s linear infinite;
+        }
+
+        .ticker-item {
+            display: inline-block;
+            padding: 0 2rem;
+        }
+
+        .ticker-item:hover {
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        @keyframes ticker {
+            0% {
+                transform: translate3d(0, 0, 0);
+            }
+
+            100% {
+                transform: translate3d(-100%, 0, 0);
+            }
+        }
+
+        /* BALANCER & RISING/FALLING */
+        .balancer-ui {
+            background: #111;
+            border: 2px solid var(--border-color);
+            padding: 40px;
+        }
+
+        .balancer-input-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .balancer-input-grid input {
+            background: #000;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            font-family: 'Noto Sans KR';
+        }
+
+        .balancer-result {
+            display: none;
+            margin-top: 30px;
+            border: 2px dashed var(--success);
+            padding: 20px;
+            background: rgba(57, 255, 20, 0.05);
+        }
+
+        .btn-cyber {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            font-family: 'Noto Sans KR';
+            cursor: pointer;
+            transition: 0.2s;
+            clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+        }
+
+        .btn-cyber:hover {
+            background: #fff;
+            transform: translateY(-2px);
+        }
+
+        /* EXPANDED MATCH TABLE */
+        .match-table-expanded {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            min-width: 1800px;
+        }
+
+        .match-table-expanded th {
+            background: #050505;
+            color: #888;
+            padding: 8px 6px;
+            border-bottom: 2px solid #333;
+            font-weight: bold;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .match-table-expanded td {
+            padding: 6px;
+            border-bottom: 1px solid #222;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .items-grid {
+            display: flex;
+            gap: 2px;
+            justify-content: center;
+        }
+
+        .item-img {
+            width: 24px;
+            height: 24px;
+            border-radius: 3px;
+            background: #333;
+            border: 1px solid #444;
+        }
+
+        .match-block {
+            margin-bottom: 30px;
+            border: 1px solid #333;
+            background: #0a0a0a;
+        }
+
+        .match-block-header {
+            padding: 12px 20px;
+            background: linear-gradient(90deg, #111, #000);
+            border-bottom: 1px solid #444;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .match-date {
+            color: var(--warning);
+            font-weight: bold;
+        }
+
+        .match-duration {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        /* LANE STATS */
+        .lane-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 15px;
+        }
+
+        .lane-stat-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .lane-stat-card:hover {
+            border-color: var(--secondary);
+            transform: translateY(-3px);
+        }
+
+        .lane-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .lane-name {
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .lane-winrate {
+            font-size: 1.5rem;
+            font-family: 'Black Han Sans';
+        }
+
+        /* CHAMPION RANKING */
+        .champ-ranking-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .champ-rank-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.2s;
+        }
+
+        .champ-rank-card:hover {
+            border-color: var(--primary);
+        }
+
+        .champ-rank-img {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            background: #333;
+        }
+
+        .champ-rank-info {
+            flex: 1;
+        }
+
+        .champ-rank-name {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .champ-rank-stats {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        /* CHART */
+        .chart-container {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        #eloChart {
+            max-height: 400px;
+        }
+
+        /* SEARCH */
+        .search-box {
+            background: #000;
+            border: 2px solid #444;
+            padding: 15px 20px;
+            font-size: 1rem;
+            color: #fff;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--secondary);
+        }
+
+        /* TOAST MESSAGE */
+        #toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 99999;
+        }
+
+        .toast {
+            background: rgba(0, 0, 0, 0.9);
+            border-left: 5px solid var(--primary);
+            color: #fff;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            font-family: 'Noto Sans KR';
+            font-size: 0.9rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s ease-out forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loading-overlay">
+        <div class="loader"></div>
+        <div style="font-family: 'JetBrains Mono'; color: #fff; text-align: center;">
+            CONNECTING TO GOOGLE SPREADSHEET...<br>
+            <!-- ID will be populated by JS -->
+            <span id="display-sheet-id" style="font-size: 0.8rem; color: #666;">ID: INITIALIZING...</span>
+            <div id="connection-status" style="margin-top:10px; font-weight:bold; font-size:0.9rem;"></div>
+        </div>
+    </div>
+
+    <!-- TOAST MSG -->
+    <div id="toast-container"></div>
+
+    <!-- NAV -->
+    <nav>
+        <div class="nav-logo">원픽 내전 // LIVE DATA</div>
+        <div class="nav-links">
+            <a href="#dashboard">대시보드</a>
+            <a href="#ranking">리더보드</a>
+            <a href="#matches">경기기록</a>
+            <a href="#lane-stats">라인별 승률</a>
+            <a href="#champ-ranking">챔피언 순위</a>
+            <a href="#elo-timeline">ELO 타임라인</a>
+            <a href="#balancer">팀 밸런서</a>
+        </div>
+    </nav>
+
+
+    <div class="sub-nav">
+        <div id="status-text" style="color:#aaa;">
+            <i class="fa-solid fa-circle-check" style="color:var(--text-dim)"></i> 시스템 대기 중
+        </div>
+        <div class="version-badge" id="last-update-time">
+            UPDATING...
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section id="dashboard">
+        <div class="container">
+            <div class="section-header">
+                <div>
+                    <div class="section-subtitle">LIVE STATUS</div>
+                    <h2 class="section-title">대시보드</h2>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-label">총 경기 수 (Logs)</div>
+                    <div class="stat-value" id="dash-total-games">-</div>
+                </div>
+                <div class="stat-card" style="border-color: var(--primary);">
+                    <div class="stat-label">등록된 선수</div>
+                    <div class="stat-value" id="dash-total-players">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">1위 최고 점수</div>
+                    <div class="stat-value" style="color:var(--secondary)" id="dash-top-mmr">-</div>
+                    <div id="dash-top-player" style="margin-top:auto; color:#888;">-</div>
+                </div>
+                <div class="stat-card" style="border-color: var(--warning);">
+                    <div class="stat-label">최근 경기</div>
+                    <div class="stat-value" style="font-size: 2.5rem;" id="dash-last-match-id">-</div>
+                    <div id="dash-last-match-date" style="margin-top:auto; color:#888;">-</div>
+                </div>
+            </div>
+
+            <!-- RISING & FALLING -->
+            <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 40px;">
+                <div style="border: 1px solid #333; padding: 30px; background: #0a0a0a;">
+                    <h3
+                        style="color: var(--success); margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+                        <i class="fa-solid fa-arrow-trend-up"></i> 최근 떡상 (MMR 급상승)
+                    </h3>
+                    <div id="rising-list">
+                        <div style="color:#666;">데이터 로딩 중...</div>
+                    </div>
+                </div>
+
+                <div style="border: 1px solid #333; padding: 30px; background: #0a0a0a;">
+                    <h3
+                        style="color: var(--primary); margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+                        <i class="fa-solid fa-arrow-trend-down"></i> 최근 떡락 (MMR 급하락)
+                    </h3>
+                    <div id="falling-list">
+                        <div style="color:#666;">데이터 로딩 중...</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- RANKING -->
+    <section id="ranking">
+        <div class="container">
+            <div class="section-header">
+                <div>
+                    <div class="section-subtitle">ELO RANKING</div>
+                    <h2 class="section-title">리더보드</h2>
+                </div>
+            </div>
+            <table class="ranking-table">
+                <thead>
+                    <tr>
+                        <th width="10%">순위</th>
+                        <th width="40%">소환사명</th>
+                        <th width="25%">ELO 점수</th>
+                        <th width="25%">티어 (추정)</th>
+                    </tr>
+                </thead>
+                <tbody id="ranking-tbody">
+                    <!-- JS Populated -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- TEAM BALANCER -->
+    <section id="balancer">
+        <div class="container">
+            <div class="section-header" style="border-left-color: var(--success);">
+                <div>
+                    <div class="section-subtitle">시뮬레이터</div>
+                    <h2 class="section-title">자동 팀 밸런스</h2>
+                </div>
+            </div>
+
+            <div class="balancer-ui">
+                <p style="margin-bottom: 20px; color: #ccc;">
+                    > 참여할 소환사 10명을 입력하면 <strong>실시간 ELO 데이터</strong>를 기반으로 팀을 구성합니다.
+                </p>
+
+                <div class="balancer-input-grid" id="balancer-inputs">
+                    <!-- Inputs generated by JS -->
+                </div>
+
+                <button class="btn-cyber" onclick="calculateBalance()">
+                    밸런스 분석 시작
+                </button>
+
+                <div class="balancer-result" id="balancer-result">
+                    <!-- JS Populated -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MATCH HISTORY (Expanded with All Columns) -->
+    <section id="matches">
+        <div class="container">
+            <div class="section-header" style="border-left-color: var(--warning);">
+                <div>
+                    <div class="section-subtitle">FULL MATCH DATA</div>
+                    <h2 class="section-title">경기 기록</h2>
+                </div>
+            </div>
+
+            <div id="matches-container">
+                <!-- JS Populated - Each match block will be added here -->
+                <div style="color:#666; text-align:center; padding:40px;">데이터 로딩 중...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LANE STATS SECTION -->
+    <section id="lane-stats">
+        <div class="container">
+            <div class="section-header" style="border-left-color: var(--secondary);">
+                <div>
+                    <div class="section-subtitle">POSITION ANALYTICS</div>
+                    <h2 class="section-title">라인별 승률</h2>
+                </div>
+            </div>
+            <div class="lane-stats-grid" id="lane-stats-grid">
+                <!-- JS Populated -->
+            </div>
+        </div>
+    </section>
+
+    <!-- CHAMPION RANKING SECTION -->
+    <section id="champ-ranking">
+        <div class="container">
+            <div class="section-header" style="border-left-color: #d633ff;">
+                <div>
+                    <div class="section-subtitle">CHAMPION META</div>
+                    <h2 class="section-title">챔피언 순위</h2>
+                </div>
+            </div>
+            <div class="champ-ranking-grid" id="champ-ranking-grid">
+                <!-- JS Populated -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ELO TIMELINE SECTION -->
+    <section id="elo-timeline">
+        <div class="container">
+            <div class="section-header" style="border-left-color: var(--success);">
+                <div>
+                    <div class="section-subtitle">RATING HISTORY</div>
+                    <h2 class="section-title">ELO 타임라인</h2>
+                </div>
+            </div>
+            <div style="margin-bottom: 20px;">
+                <input type="text" class="search-box" id="elo-player-search" placeholder="선수 이름 검색... (예: Faker)">
+            </div>
+            <div class="chart-container">
+                <canvas id="eloChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- TICKER -->
+    <div class="ticker-wrap">
+        <div class="ticker" id="ticker-content">
+            <div class="ticker-item">SYSTEM INITIALIZING... DATA STREAM LOADING...</div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // [설정 영역]
+        // 연결 테스트를 위해 testMode를 false로 설정합니다.
+        // ==========================================
+        const CONFIG = {
+            // true일 경우 구글 시트 연결 없이 가짜 데이터를 보여줍니다.
+            testMode: false, 
+
+            // 본인의 시트 ID (testMode가 false일 때만 사용됨)
+            sheetId: '13-xiV7yy5KcEn01u898cpvsv7N5lOLXUQMflTRFMSnY', 
+            
+            sheets: {
+                ranking: 'ELO 순위표',
+                logs: 'Logs',
+                matches: '경기기록',
+                laneStats: '라인별 승률',
+                champRanking: '챔프 순위',
+                eloTimeline: 'ELO 타임라인'
+            }
+        };
+        // ==========================================
+
+        // Global Data Storage
+        let GLOBAL_DATA = {
+            ranking: [],
+            logs: [],
+            matches: [],
+            laneStats: [],
+            champRanking: [],
+            eloTimeline: []
+        };
+
+        let eloChart = null; // Chart.js instance
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            if (type === 'error') toast.style.borderLeftColor = 'red';
+            if (type === 'success') toast.style.borderLeftColor = 'var(--success)';
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function getQueryUrl(sheetName, query = 'SELECT *', responseHandler) {
+            const encodedQuery = encodeURIComponent(query);
+            const encodedSheet = encodeURIComponent(sheetName);
+            const tqx = responseHandler ? `out:json;responseHandler:${responseHandler}` : 'out:json';
+            return `https://docs.google.com/spreadsheets/d/${CONFIG.sheetId}/gviz/tq?tqx=${tqx}&sheet=${encodedSheet}&tq=${encodedQuery}`;
+        }
+
+        // --- MOCK DATA GENERATORS (FOR TEST MODE) ---
+        function getMockData(sheetName) {
+            if (sheetName === CONFIG.sheets.ranking) {
+                return [
+                    [1, 'Faker', 2500], [2, 'Chovy', 2450], [3, 'ShowMaker', 2300], 
+                    [4, 'Zeka', 2250], [5, 'Bdd', 2100], [6, 'Clozer', 2050],
+                    [7, 'Keria', 1900], [8, 'Zeus', 1850], [9, 'Oner', 1800],
+                    [10, 'Gumayusi', 1750], [11, 'Viper', 1700], [12, 'Lehends', 1650]
+                ];
+            }
+            if (sheetName === CONFIG.sheets.logs) {
+                return [
+                    ['2024-01-01', 1, 'BLUE', 'RED', '승리', 25],
+                    ['2024-01-01', 2, 'RED', 'BLUE', '승리', 20],
+                    ['2024-01-02', 3, 'BLUE', 'RED', '승리', -15],
+                    ['2024-01-03', 4, 'BLUE', 'RED', '승리', 30], // Rising example
+                    ['2024-01-04', 5, 'RED', 'BLUE', '승리', -25]  // Falling example
+                ];
+            }
+            if (sheetName === CONFIG.sheets.matches) {
+                // Generate a full match mock row
+                const createRow = (team, id, name, champ, win, k, d, a) => [
+                    team, id, name, '', champ, 18, win, k, d, a, 50, 25000, 15000, 12000, 10, 2, 
+                    '무한의 대검', '고속 연사포', '유령 무희', '도미닉 경의 인사', '피바라기', '광전사의 군화', '망원형 개조'
+                ];
+                return [
+                    // Match 5 (Recent)
+                    createRow('BLUE', 5, 'Faker', 'Orianna', '승리', 5, 2, 10),
+                    createRow('BLUE', 5, 'Oner', 'Lee Sin', '승리', 4, 3, 12),
+                    createRow('BLUE', 5, 'Zeus', 'Aatrox', '승리', 6, 4, 8),
+                    createRow('BLUE', 5, 'Gumayusi', 'Jinx', '승리', 8, 1, 5),
+                    createRow('BLUE', 5, 'Keria', 'Thresh', '승리', 1, 4, 15),
+                    createRow('RED', 5, 'Chovy', 'Azir', '패배', 3, 5, 2),
+                    createRow('RED', 5, 'Canyon', 'Nidalee', '패배', 2, 6, 4),
+                    createRow('RED', 5, 'Kiin', 'K Sante', '패배', 4, 4, 3),
+                    createRow('RED', 5, 'Peyz', 'Zeri', '패배', 5, 5, 3),
+                    createRow('RED', 5, 'Lehends', 'Rakan', '패배', 0, 7, 6),
+                    // Match 4
+                    createRow('BLUE', 4, 'Faker', 'Ahri', '승리', 10, 0, 8),
+                    createRow('BLUE', 4, 'Oner', 'Vi', '승리', 5, 2, 15),
+                    createRow('BLUE', 4, 'Zeus', 'Yone', '승리', 7, 3, 5),
+                    createRow('BLUE', 4, 'Gumayusi', 'Varus', '승리', 6, 2, 9),
+                    createRow('BLUE', 4, 'Keria', 'Bard', '승리', 2, 1, 18),
+                    createRow('RED', 4, 'Bdd', 'Taliyah', '패배', 2, 6, 3),
+                    createRow('RED', 4, 'Cuzz', 'Sejuani', '패배', 1, 5, 5),
+                    createRow('RED', 4, 'PerfecT', 'Renekton', '패배', 3, 4, 1),
+                    createRow('RED', 4, 'Deft', 'Ezreal', '패배', 4, 3, 2),
+                    createRow('RED', 4, 'BeryL', 'Nautilus', '패배', 0, 8, 4),
+                ];
+            }
+            if (sheetName === CONFIG.sheets.laneStats) {
+                return [
+                    ['TOP', 50, 25, 0, 0, 0, 0, '3.5', '50%', 0, 'Zeus'],
+                    ['JG', 50, 26, 0, 0, 0, 0, '4.2', '52%', 0, 'Oner'],
+                    ['MID', 50, 30, 0, 0, 0, 0, '5.1', '60%', 0, 'Faker'],
+                    ['ADC', 50, 24, 0, 0, 0, 0, '3.8', '48%', 0, 'Gumayusi'],
+                    ['SUP', 50, 25, 0, 0, 0, 0, '4.5', '50%', 0, 'Keria']
+                ];
+            }
+            if (sheetName === CONFIG.sheets.champRanking) {
+                return [
+                    ['Orianna', 20, 12, 0, 0, 0, 0, '4.5', '60%'],
+                    ['Lee Sin', 18, 9, 0, 0, 0, 0, '3.2', '50%'],
+                    ['Aatrox', 15, 8, 0, 0, 0, 0, '2.8', '53%'],
+                    ['Jinx', 12, 7, 0, 0, 0, 0, '4.0', '58%'],
+                    ['Thresh', 10, 5, 0, 0, 0, 0, '3.5', '50%']
+                ];
+            }
+            if (sheetName === CONFIG.sheets.eloTimeline) {
+                return [
+                    [1, 'Game 1', 'Faker', 1025],
+                    [2, 'Game 2', 'Faker', 1050],
+                    [3, 'Game 3', 'Faker', 1075],
+                    [4, 'Game 4', 'Faker', 1100],
+                    [5, 'Game 5', 'Faker', 1125],
+                    [1, 'Game 1', 'Chovy', 1020],
+                    [2, 'Game 2', 'Chovy', 1040],
+                    [3, 'Game 3', 'Chovy', 1030],
+                    [4, 'Game 4', 'Chovy', 1060],
+                    [5, 'Game 5', 'Chovy', 1050]
+                ];
+            }
+            return [];
+        }
+
+        function fetchData(sheetName, query) {
+            // TEST MODE LOGIC
+            if (CONFIG.testMode) {
+                return new Promise((resolve) => {
+                    console.log(`[TEST MODE] Fetching mock data for ${sheetName}`);
+                    setTimeout(() => {
+                        resolve(getMockData(sheetName));
+                    }, 300); // Simulate slight delay
+                });
+            }
+
+            // REAL GOOGLE SHEET FETCH
+            return new Promise((resolve) => {
+                const callbackName = `__sheetCb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+                const script = document.createElement('script');
+                let finished = false;
+
+                const cleanup = () => {
+                    if (finished) return;
+                    finished = true;
+                    delete window[callbackName];
+                    script.remove();
+                    clearTimeout(timeout);
+                };
+
+                const timeout = setTimeout(() => {
+                    cleanup();
+                    console.error(`Error fetching ${sheetName}: timeout`);
+                    resolve(null);
+                }, 10000);
+
+                window[callbackName] = (response) => {
+                    cleanup();
+                    if (!response || response.status !== 'ok' || !response.table) {
+                        console.error(`Error fetching ${sheetName}: invalid response`, response);
+                        resolve(null);
+                        return;
+                    }
+                    const rows = response.table.rows.map(r => r.c.map(cell => cell ? (cell.v !== null ? cell.v : '') : ''));
+                    resolve(rows);
+                };
+
+                script.onerror = () => {
+                    cleanup();
+                    console.error(`Error fetching ${sheetName}: network error`);
+                    resolve(null);
+                };
+
+                script.src = getQueryUrl(sheetName, query, callbackName);
+                document.head.appendChild(script);
+            });
+        }
+
+        // --- LOGIC: RISING/FALLING ---
+        function updateRisingFalling(logs) {
+            const recentLogs = logs.slice(-50);
+            const changes = recentLogs.map(log => ({
+                name: log[2],
+                change: parseInt(log[5]) || 0
+            })).filter(item => item.change !== 0);
+
+            const rising = changes.filter(c => c.change > 0).sort((a, b) => b.change - a.change).slice(0, 3);
+            const falling = changes.filter(c => c.change < 0).sort((a, b) => a.change - b.change).slice(0, 3);
+
+            const risingDiv = document.getElementById('rising-list');
+            risingDiv.innerHTML = rising.length ? '' : '데이터 없음';
+            rising.forEach((r, i) => {
+                risingDiv.innerHTML += `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px dashed #333; padding-bottom: 5px;">
+                    <span>#${i + 1} ${r.name}</span>
+                    <span style="color: var(--success); font-weight:bold;">+${r.change} MMR</span>
+                </div>`;
+            });
+
+            const fallingDiv = document.getElementById('falling-list');
+            fallingDiv.innerHTML = falling.length ? '' : '데이터 없음';
+            falling.forEach((r, i) => {
+                fallingDiv.innerHTML += `
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px dashed #333; padding-bottom: 5px;">
+                    <span>#${i + 1} ${r.name}</span>
+                    <span style="color: var(--primary); font-weight:bold;">${r.change} MMR</span>
+                </div>`;
+            });
+        }
+
+        // --- LOGIC: TICKER ---
+        function updateTicker(logs) {
+            const tickerDiv = document.getElementById('ticker-content');
+            tickerDiv.innerHTML = '';
+            
+            if(logs.length === 0) {
+                 tickerDiv.innerHTML += `<div class="ticker-item">현재 등록된 경기 기록이 없습니다. 시즌 시작을 준비하세요!</div>`;
+                 return;
+            }
+
+            const matches = [];
+            const processedIds = new Set();
+
+            for (let i = logs.length - 1; i >= 0; i--) {
+                const row = logs[i];
+                const matchId = row[1];
+                if (!processedIds.has(matchId)) {
+                    if (row[4] === '승리') {
+                        matches.push(`매치 #${matchId}: ${row[2]}팀 승리`);
+                        processedIds.add(matchId);
+                    }
+                }
+                if (matches.length >= 5) break;
+            }
+
+            matches.forEach(text => {
+                tickerDiv.innerHTML += `<div class="ticker-item">${text}</div>`;
+            });
+
+            const statusText = CONFIG.testMode ? '[테스트 모드 작동 중]' : `[시스템] 실시간 데이터 연동 완료 (${CONFIG.sheetId})`;
+            tickerDiv.innerHTML += `<div class="ticker-item" style="color:var(--warning);">${statusText}</div>`;
+        }
+
+        // --- LOGIC: BALANCER ---
+        function initBalancerInputs() {
+            const grid = document.getElementById('balancer-inputs');
+            grid.innerHTML = '';
+            // Test mode defaults to Faker/Chovy etc.
+            const defaults = CONFIG.testMode 
+                ? ['Faker', 'Chovy', 'ShowMaker', 'Zeka', 'Bdd', 'Clozer', 'Keria', 'Zeus', 'Oner', 'Gumayusi'] 
+                : ['player1', 'player2', 'player3', 'player4', 'player5', 'player6', 'player7', 'player8', '', ''];
+                
+            defaults.forEach((name, i) => {
+                grid.innerHTML += `<input type="text" id="p${i}" value="${name}" placeholder="참가자 ${i + 1}">`;
+            });
+        }
+
+        function calculateBalance() {
+            const resultDiv = document.getElementById('balancer-result');
+            const players = [];
+
+            for (let i = 0; i < 10; i++) {
+                const name = document.getElementById(`p${i}`).value.trim();
+                if (!name) continue;
+                const found = GLOBAL_DATA.ranking.find(r => r[1].toLowerCase() === name.toLowerCase());
+                const mmr = found ? parseInt(found[2]) : 1000;
+                players.push({ name, mmr });
+            }
+
+            if (players.length < 10) {
+                showToast(`10명의 선수가 필요합니다. (현재 ${players.length}명)`, 'error');
+                return;
+            }
+
+            players.sort((a, b) => b.mmr - a.mmr);
+
+            const teamA = [players[0], players[3], players[4], players[7], players[8]];
+            const teamB = [players[1], players[2], players[5], players[6], players[9]];
+
+            const sumA = teamA.reduce((a, b) => a + b.mmr, 0);
+            const sumB = teamB.reduce((a, b) => a + b.mmr, 0);
+            const avgA = Math.round(sumA / 5);
+            const avgB = Math.round(sumB / 5);
+
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+            <h3 style="color:var(--success); margin-bottom:15px;">[분석 완료] 최적 밸런스 제안</h3>
+            <div style="display:flex; justify-content:space-between; gap:20px;">
+                <div style="flex:1; background:#000; padding:15px; border:1px solid #444;">
+                    <div style="color:var(--secondary); font-weight:bold; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:5px;">
+                        🔵 블루팀 (평균: ${avgA})
+                    </div>
+                    ${teamA.map(p => `<div>${p.name} <span style="color:#666; font-size:0.8rem;">(${p.mmr})</span></div>`).join('')}
+                </div>
+                <div style="flex:1; background:#000; padding:15px; border:1px solid #444;">
+                    <div style="color:var(--primary); font-weight:bold; margin-bottom:10px; border-bottom:1px solid #333; padding-bottom:5px;">
+                        🔴 레드팀 (평균: ${avgB})
+                    </div>
+                    ${teamB.map(p => `<div>${p.name} <span style="color:#666; font-size:0.8rem;">(${p.mmr})</span></div>`).join('')}
+                </div>
+            </div>
+            <div style="margin-top:15px; text-align:center; font-size:0.9rem; color:#888;">
+                MMR 차이: ${Math.abs(avgA - avgB)}점
+            </div>
+        `;
+        }
+
+        // --- LOGIC: RENDER MATCHES (EXPANDED) ---
+        function renderMatches(matchData) {
+            const container = document.getElementById('matches-container');
+            if (!matchData || matchData.length === 0) {
+                container.innerHTML = '<div style="color:#666; text-align:center; padding:40px;">경기 데이터가 없습니다.</div>';
+                return;
+            }
+
+            // Group matches by 10 rows (5 blue + 5 red per match)
+            const matchGroups = [];
+            for (let i = 0; i < matchData.length; i += 10) {
+                matchGroups.push(matchData.slice(i, i + 10));
+            }
+
+            // Show last 5 matches (most recent first)
+            const recentMatches = matchGroups.slice(-5).reverse();
+
+            container.innerHTML = recentMatches.map((match, idx) => {
+                const rows = match.map(row => {
+                    const teamVal = row[0] || '';
+                    const isBlue = teamVal.toUpperCase().includes('BLUE');
+                    const resultVal = row[6] || '';
+                    const isWin = resultVal === '승리';
+
+                    // Items columns: 16-21 (아이템 1-6), 22 (장신구)
+                    const items = [row[16], row[17], row[18], row[19], row[20], row[21]].filter(Boolean);
+                    const trinket = row[22] || '';
+
+                    return `
+                    <tr class="${isBlue ? 'team-blue' : 'team-red'}">
+                        <td style="font-weight:bold; color:${isBlue ? 'var(--secondary)' : 'var(--primary)'}">${teamVal}</td>
+                        <td>${row[1] || ''}</td>
+                        <td style="text-align:left;">
+                            <div class="champ-cell">
+                                <div class="champ-img" style="background: linear-gradient(135deg, #444, #222);"></div>
+                                <div>
+                                    <div class="summoner-name">${row[2] || ''}</div>
+                                    <div style="font-size:0.7rem; color:#888;">${row[4] || ''}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${row[5] || ''}</td>
+                        <td class="${isWin ? 'result-win' : 'result-loss'}">${resultVal}</td>
+                        <td>${row[7] || 0}/${row[8] || 0}/${row[9] || 0}</td>
+                        <td>${row[10] || 0}</td>
+                        <td>${Number(row[11] || 0).toLocaleString()}</td>
+                        <td>${Number(row[12] || 0).toLocaleString()}</td>
+                        <td style="color:#f1c40f">${Number(row[13] || 0).toLocaleString()}</td>
+                        <td>${row[14] || 0}</td>
+                        <td>${row[15] || 0}</td>
+                        <td>
+                            <div class="items-grid">
+                                ${items.map(item => `<div class="item-img" title="${item}"></div>`).join('')}
+                                ${trinket ? `<div class="item-img" style="border-color:#ffea00;" title="${trinket}"></div>` : ''}
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join('');
+
+                return `
+                <div class="match-block">
+                    <div class="match-block-header">
+                        <span class="match-date">매치 #${recentMatches.length - idx}</span>
+                        <span class="match-duration">경기기록 시트 데이터</span>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table class="match-table-expanded">
+                            <thead>
+                                <tr>
+                                    <th>팀</th><th>포지션</th><th style="text-align:left;">소환사/챔피언</th>
+                                    <th>레벨</th><th>결과</th><th>K/D/A</th><th>시야</th>
+                                    <th>피해량</th><th>받은 피해</th><th>골드</th><th>CC</th><th>핑와</th><th>아이템</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // --- LOGIC: RENDER LANE STATS ---
+        function renderLaneStats(laneData) {
+            const grid = document.getElementById('lane-stats-grid');
+            if (!laneData || laneData.length === 0) {
+                grid.innerHTML = '<div style="color:#666;">라인 데이터가 없습니다.</div>';
+                return;
+            }
+
+            const icons = { 'TOP': '🗡️', 'JG': '🌲', 'MID': '⚡', 'ADC': '🎯', 'SUP': '🛡️' };
+
+            grid.innerHTML = laneData.slice(0, 5).map(row => {
+                const pos = row[0] || '';
+                const games = row[1] || 0;
+                const wins = row[2] || 0;
+                const winrate = row[8] || '0%';
+                const kda = row[7] || '0.0';
+                const pog = row[10] || '-';
+
+                return `
+                <div class="lane-stat-card">
+                    <div class="lane-icon">${icons[pos] || '🎮'}</div>
+                    <div class="lane-name">${pos}</div>
+                    <div class="lane-winrate" style="color: ${parseFloat(winrate) >= 50 ? 'var(--success)' : 'var(--primary)'}">${winrate}</div>
+                    <div style="font-size:0.85rem; color:#888; margin-top:5px;">${games}전 ${wins}승</div>
+                    <div style="font-size:0.85rem; color:#666;">KDA: ${kda}</div>
+                    <div style="font-size:0.8rem; color:var(--warning); margin-top:5px;">POG: ${pog}</div>
+                </div>`;
+            }).join('');
+        }
+
+        // --- LOGIC: RENDER CHAMPION RANKING ---
+        function renderChampRanking(champData) {
+            const grid = document.getElementById('champ-ranking-grid');
+            if (!champData || champData.length === 0) {
+                grid.innerHTML = '<div style="color:#666;">챔피언 데이터가 없습니다.</div>';
+                return;
+            }
+
+            grid.innerHTML = champData.slice(0, 20).map((row, idx) => {
+                const name = row[0] || 'Unknown';
+                const games = row[1] || 0;
+                const wins = row[2] || 0;
+                const kda = row[7] || '0.0';
+                const winrate = row[8] || '0%';
+
+                return `
+                <div class="champ-rank-card">
+                    <div class="champ-rank-img" style="background: linear-gradient(135deg, #333, #111); display:flex; align-items:center; justify-content:center; font-size:1.2rem; color:#666;">${idx + 1}</div>
+                    <div class="champ-rank-info">
+                        <div class="champ-rank-name">${name}</div>
+                        <div class="champ-rank-stats">${games}전 ${wins}승 (${winrate})</div>
+                        <div class="champ-rank-stats">KDA: ${kda}</div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // --- LOGIC: RENDER ELO TIMELINE CHART ---
+        function renderEloTimeline(timelineData) {
+            if (!timelineData || timelineData.length === 0) return;
+
+            // Group by player
+            const playerData = {};
+            timelineData.forEach(row => {
+                const player = row[2];
+                const elo = row[3];
+                const matchNum = row[0];
+                if (!player) return;
+                if (!playerData[player]) playerData[player] = [];
+                playerData[player].push({ x: matchNum, y: elo });
+            });
+
+            const colors = ['#ff003c', '#00f0ff', '#39ff14', '#ffea00', '#d633ff', '#ff6b6b', '#4ecdc4', '#95e1d3'];
+            const players = Object.keys(playerData).slice(0, 8);
+
+            const datasets = players.map((player, idx) => ({
+                label: player,
+                data: playerData[player],
+                borderColor: colors[idx % colors.length],
+                backgroundColor: 'transparent',
+                tension: 0.3,
+                pointRadius: 2
+            }));
+
+            const ctx = document.getElementById('eloChart').getContext('2d');
+            if (eloChart) eloChart.destroy();
+
+            eloChart = new Chart(ctx, {
+                type: 'line',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top', labels: { color: '#888' } },
+                        title: { display: true, text: '선수별 ELO 변화 추이', color: '#fff' }
+                    },
+                    scales: {
+                        x: { type: 'linear', title: { display: true, text: '경기 순번', color: '#666' }, grid: { color: '#222' }, ticks: { color: '#666' } },
+                        y: { title: { display: true, text: 'ELO', color: '#666' }, grid: { color: '#222' }, ticks: { color: '#666' } }
+                    }
+                }
+            });
+
+            // Search functionality
+            document.getElementById('elo-player-search').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const filtered = players.filter(p => p.toLowerCase().includes(query));
+                eloChart.data.datasets.forEach(ds => {
+                    ds.hidden = !filtered.includes(ds.label);
+                });
+                eloChart.update();
+            });
+        }
+
+        // --- MAIN INIT ---
+        async function initApp() {
+            const loader = document.getElementById('loading-overlay');
+            const updateTime = document.getElementById('last-update-time');
+            const displayId = document.getElementById('display-sheet-id');
+            const connectionStatus = document.getElementById('connection-status');
+            const statusText = document.getElementById('status-text');
+            const now = new Date();
+            
+            // Dynamic ID Display (This fixes the user's issue)
+            displayId.textContent = `ID: ${CONFIG.sheetId}`;
+
+            updateTime.textContent = `LAST SYNC: ${now.toLocaleTimeString()}`;
+
+            initBalancerInputs();
+
+            // Check if ID is default
+            if(CONFIG.sheetId === 'YOUR_SHEET_ID_HERE') {
+                showToast('구글 시트 ID를 설정해주세요!', 'error');
+                // Don't return, let it fail to show error clearly
+            }
+
+            // Fetch all data in parallel
+            const [rankingData, logsData, matchData, laneData, champData, timelineData] = await Promise.all([
+                fetchData(CONFIG.sheets.ranking, 'SELECT A, B, C'),
+                fetchData(CONFIG.sheets.logs, 'SELECT *'),
+                fetchData(CONFIG.sheets.matches, 'SELECT *'),
+                fetchData(CONFIG.sheets.laneStats, 'SELECT *'),
+                fetchData(CONFIG.sheets.champRanking, 'SELECT *'),
+                fetchData(CONFIG.sheets.eloTimeline, 'SELECT *')
+            ]);
+
+            // DIAGNOSTIC LOGIC
+            const isError = !rankingData && !logsData;
+            const isEmpty = rankingData && rankingData.length === 0 && logsData && logsData.length === 0;
+
+            if (isError) {
+                showToast('연결 실패: ID와 권한, 탭 이름을 확인해주세요.', 'error');
+                displayId.style.color = 'var(--primary)';
+                connectionStatus.style.color = 'var(--primary)';
+                connectionStatus.textContent = "CONNECTION FAILED (ERROR)";
+                // Keep loader but change text
+                return;
+            }
+
+            if (isEmpty) {
+                showToast('연결 성공: 데이터가 비어있습니다.', 'success');
+                connectionStatus.style.color = 'var(--success)';
+                connectionStatus.textContent = "CONNECTED (EMPTY DATA)";
+                statusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color:var(--success)"></i> 연결 성공 (데이터 0건)`;
+                
+                // Allow rendering to proceed with empty data
+            } else {
+                 statusText.innerHTML = `<i class="fa-solid fa-circle-check" style="color:var(--success)"></i> 구글 시트 실시간 연동됨`;
+            }
+
+            // Store in global
+            GLOBAL_DATA.ranking = rankingData || [];
+            GLOBAL_DATA.logs = logsData || [];
+            GLOBAL_DATA.matches = matchData || [];
+            GLOBAL_DATA.laneStats = laneData || [];
+            GLOBAL_DATA.champRanking = champData || [];
+            GLOBAL_DATA.eloTimeline = timelineData || [];
+
+            // 1. Dashboard
+            if (GLOBAL_DATA.logs) {
+                const matchIds = new Set(GLOBAL_DATA.logs.map(row => row[1]));
+                document.getElementById('dash-total-games').textContent = matchIds.size;
+                const lastLog = GLOBAL_DATA.logs.length > 0 ? GLOBAL_DATA.logs[GLOBAL_DATA.logs.length - 1] : null;
+                if(lastLog) {
+                    document.getElementById('dash-last-match-id').textContent = lastLog[1] || 'Unknown';
+                    document.getElementById('dash-last-match-date').textContent = lastLog[0] || '-';
+                } else {
+                    document.getElementById('dash-last-match-id').textContent = '-';
+                    document.getElementById('dash-last-match-date').textContent = '-';
+                }
+                updateRisingFalling(GLOBAL_DATA.logs);
+                updateTicker(GLOBAL_DATA.logs);
+            }
+
+            // 2. Ranking
+            if (GLOBAL_DATA.ranking && GLOBAL_DATA.ranking.length > 0) {
+                const topPlayer = GLOBAL_DATA.ranking[0];
+                document.getElementById('dash-top-player').textContent = topPlayer[1];
+                document.getElementById('dash-top-mmr').textContent = topPlayer[2];
+                document.getElementById('dash-total-players').textContent = GLOBAL_DATA.ranking.length + "명";
+
+                const tbody = document.getElementById('ranking-tbody');
+                tbody.innerHTML = '';
+                GLOBAL_DATA.ranking.slice(0, 15).forEach(row => {
+                    const rank = row[0];
+                    const name = row[1];
+                    const elo = row[2];
+                    let tier = 'GOLD';
+                    if (elo >= 1800) tier = '<span style="color:#d633ff">MASTER</span>';
+                    else if (elo >= 1600) tier = '<span style="color:#00f0ff">DIAMOND</span>';
+                    else if (elo >= 1400) tier = '<span style="color:#39ff14">PLATINUM</span>';
+                    tbody.innerHTML += `<tr><td class="${rank <= 3 ? 'rank-' + rank : ''}">${rank}</td><td>${name} ${rank == 1 ? '👑' : ''}</td><td style="font-weight:900; color:#fff;">${elo}</td><td>${tier}</td></tr>`;
+                });
+            } else {
+                document.getElementById('ranking-tbody').innerHTML = '<tr><td colspan="4" style="text-align:center; color:#666;">데이터가 없습니다.</td></tr>';
+            }
+
+            // 3. Matches (expanded with all columns)
+            renderMatches(matchData);
+
+            // 4. Lane Stats
+            renderLaneStats(laneData);
+
+            // 5. Champion Ranking
+            renderChampRanking(champData);
+
+            // 6. ELO Timeline Chart
+            renderEloTimeline(timelineData);
+
+            loader.style.opacity = 0;
+            setTimeout(() => loader.style.display = 'none', 500);
+        }
+
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+
+</body>
+
+</html>
