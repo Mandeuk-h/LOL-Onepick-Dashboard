@@ -1207,14 +1207,33 @@
                 ];
             }
             if (sheetName === CONFIG.sheets.matches) {
-                const createRow = (team, id, name, champ, win) => [
-                    team, id, name, '', champ, 18, win, 5, 2, 10, 50, 15000, 15000, 12000, 10, 2, 
+                // Mocking needs to match the new 12-row logic
+                // Row 1: Date/Time
+                const row1 = ['2024-01-01 20:00', '35:20', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+                // Row 2: Header (ignored)
+                const row2 = ['TEAM', 'POS', 'NAME', '', 'CHAMP', 'LV', 'RESULT', 'K', 'D', 'A', 'VS', 'DMG', 'TNK', 'GLD', 'CC', 'W', 'I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'TRK'];
+                
+                const createPlayer = (team, pos, name, champ, win) => [
+                    team, pos, name, '', champ, 18, win, 5, 2, 10, 50, 15000, 15000, 12000, 10, 2, 
                     '무한의 대검', '고속 연사포', '유령 무희', '도미닉 경의 인사', '피바라기', '광전사의 군화', '망원형 개조'
                 ];
-                return [
-                    createRow('BLUE', 5, 'Faker', '오리아나', '승리'),
-                    createRow('RED', 5, 'Chovy', '아지르', '패배')
+
+                const blueTeam = [
+                    createPlayer('BLUE', 'TOP', 'Zeus', '아트록스', '승리'),
+                    createPlayer('BLUE', 'JG', 'Oner', '리신', '승리'),
+                    createPlayer('BLUE', 'MID', 'Faker', '아지르', '승리'),
+                    createPlayer('BLUE', 'ADC', 'Gumayusi', '바루스', '승리'),
+                    createPlayer('BLUE', 'SUP', 'Keria', '애쉬', '승리')
                 ];
+                const redTeam = [
+                    createPlayer('RED', 'TOP', 'Doran', '그웬', '패배'),
+                    createPlayer('RED', 'JG', 'Peanut', '세주아니', '패배'),
+                    createPlayer('RED', 'MID', 'Chovy', '요네', '패배'),
+                    createPlayer('RED', 'ADC', 'Peyz', '제리', '패배'),
+                    createPlayer('RED', 'SUP', 'Delight', '라칸', '패배')
+                ];
+
+                return [row1, row2, ...blueTeam, ...redTeam];
             }
             return [];
         }
@@ -1319,13 +1338,26 @@
             document.getElementById('p-tier').textContent = tier;
             
             const myMatches = [];
-            GLOBAL_DATA.matches.forEach(m => {
-                if(m[2] && m[2].toLowerCase() === name.toLowerCase()) {
-                    myMatches.push(m);
+            // Updated logic for finding player matches in the new 12-row structure
+            // Need to scan all "player rows" (rows 2-11 in each 12-row block)
+            if (GLOBAL_DATA.matches && GLOBAL_DATA.matches.length > 0) {
+                for (let i = 0; i < GLOBAL_DATA.matches.length; i += 12) {
+                    const block = GLOBAL_DATA.matches.slice(i, i + 12);
+                    if (block.length < 12) continue; // Incomplete block
+
+                    // Player rows are index 2 to 11 (3rd row to 12th row)
+                    for (let j = 2; j < 12; j++) {
+                        const row = block[j];
+                        // row[2] is NAME based on new COL mapping
+                        if (row && row[2] && row[2].toString().toLowerCase() === name.toLowerCase()) {
+                            myMatches.push(row);
+                        }
+                    }
                 }
-            });
+            }
 
             const totalGames = myMatches.length;
+            // row[6] is RESULT based on new COL mapping
             const wins = myMatches.filter(m => m[6] === '승리').length;
             const losses = totalGames - wins;
             const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
@@ -1335,6 +1367,7 @@
 
             let totalK = 0, totalD = 0, totalA = 0;
             myMatches.forEach(m => {
+                // row[7]=K, row[8]=D, row[9]=A
                 totalK += (m[7] || 0); totalD += (m[8] || 0); totalA += (m[9] || 0);
             });
             const avgKda = totalD === 0 ? (totalK + totalA) : ((totalK + totalA) / totalD).toFixed(2);
@@ -1342,7 +1375,7 @@
 
             const champCounts = {};
             myMatches.forEach(m => {
-                const c = m[4];
+                const c = m[4]; // row[4] = CHAMP
                 if(!champCounts[c]) champCounts[c] = { games: 0, wins: 0 };
                 champCounts[c].games++;
                 if(m[6] === '승리') champCounts[c].wins++;
@@ -1514,53 +1547,117 @@
         `;
         }
 
+        // [핵심 수정 부분] renderMatches 함수 재정의
+        // 사용자가 제공한 12행 주기 패턴(1행:메타, 2행:헤더, 3~12행:플레이어)에 맞춰 수정
         function renderMatches(matchData) {
             const container = document.getElementById('matches-container');
+            
+            // [설정] 칼럼 인덱스 매핑 (A=0, B=1, ...)
+            const COL = {
+                // A열 (0): 시간, 팀(BLUE/RED)
+                // B열 (1): 플레이타임, 포지션
+                // C열 (2): 소환사 이름
+                // D열 (3): 챔피언 이미지 (사용안함)
+                // E열 (4): 챔피언 이름
+                // F열 (5): 레벨
+                // G열 (6): 결과 (승리/패배)
+                // H열 (7): 킬
+                // I열 (8): 데스
+                // J열 (9): 어시스트
+                // K열 (10): 시야점수
+                // L열 (11): 가한피해량
+                // M열 (12): 받은피해량
+                // N열 (13): 획득 골드
+                // O열 (14): 군중 제어
+                // P열 (15): 제어와드(핑와)
+                // Q~V열 (16~21): 아이템 1~6
+                // W열 (22): 장신구
+                META_TIME: 0,   // A열 (Row 1)
+                META_DURATION: 1, // B열 (Row 1)
+                
+                TEAM: 0,      // A열 (Row 3~12)
+                LANE: 1,      // B열
+                NAME: 2,      // C열
+                CHAMP: 4,     // E열
+                LEVEL: 5,     // F열
+                RESULT: 6,    // G열
+                K: 7, D: 8, A: 9, // H, I, J열
+                VISION: 10,   // K열
+                DEALT: 11,    // L열
+                TAKEN: 12,    // M열
+                GOLD: 13,     // N열
+                CC: 14,       // O열
+                WARD: 15,     // P열
+                ITEM_START: 16, // Q열 (16~21)
+                TRINKET: 22     // W열
+            };
+
             if (!matchData || matchData.length === 0) {
                 container.innerHTML = '<div style="color:#666; text-align:center; padding:40px;">경기 데이터가 없습니다.</div>';
                 return;
             }
 
+            // 12행씩 잘라서 경기 블록 생성
             const matchGroups = [];
-            for (let i = 0; i < matchData.length; i += 10) {
-                matchGroups.push(matchData.slice(i, i + 10));
+            for (let i = 0; i < matchData.length; i += 12) {
+                // 12줄이 확보된 경우만 추가 (데이터 무결성)
+                if (i + 12 <= matchData.length) {
+                    matchGroups.push(matchData.slice(i, i + 12));
+                }
             }
 
+            // 최근 5경기 (역순)
             const recentMatches = matchGroups.slice(-5).reverse();
 
-            container.innerHTML = recentMatches.map((match, idx) => {
-                const rows = match.map(row => {
-                    const teamVal = row[0] || '';
-                    const isBlue = teamVal.toUpperCase().includes('BLUE');
-                    const resultVal = row[6] || '';
-                    const isWin = resultVal === '승리';
-                    const champName = row[4] || '';
+            container.innerHTML = recentMatches.map((block, idx) => {
+                // 1행: 메타 정보
+                const metaRow = block[0];
+                const matchDate = metaRow[COL.META_TIME] || '-';
+                const matchDuration = metaRow[COL.META_DURATION] || '-';
 
-                    const items = [row[16], row[17], row[18], row[19], row[20], row[21]].filter(Boolean);
-                    const trinket = row[22] || '';
+                // 2행: 헤더 (무시)
+
+                // 3~12행: 플레이어 데이터 (10명)
+                const playerRows = block.slice(2, 12);
+
+                const rowsHtml = playerRows.map(row => {
+                    const teamVal = row[COL.TEAM] || '';
+                    const isBlue = teamVal.toString().toUpperCase().includes('BLUE');
+                    const resultVal = row[COL.RESULT] || '';
+                    const isWin = resultVal === '승리';
+                    const champName = row[COL.CHAMP] || '';
+
+                    // 아이템 데이터 수집 (Q~V: 6개)
+                    const items = [];
+                    for(let i = 0; i < 6; i++) {
+                        if(row[COL.ITEM_START + i]) items.push(row[COL.ITEM_START + i]);
+                    }
+                    const trinket = row[COL.TRINKET] || '';
 
                     return `
                     <tr class="${isBlue ? 'team-blue' : 'team-red'}">
-                        <td style="font-weight:bold; color:${isBlue ? 'var(--secondary)' : 'var(--primary)'}">${teamVal.substr(0,1)}</td>
-                        <td>${row[1] || ''}</td>
+                        <td style="font-weight:bold; color:${isBlue ? 'var(--secondary)' : 'var(--primary)'}">
+                            ${teamVal.toString().charAt(0)}
+                        </td>
+                        <td>${row[COL.LANE] || ''}</td>
                         <td style="text-align:left;">
                             <div class="champ-cell">
                                 <img class="champ-img" src="${getChampImg(champName)}" onerror="this.src='https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Poro_0.jpg'" alt="${champName}">
                                 <div>
-                                    <div class="summoner-name">${row[2] || ''}</div>
+                                    <div class="summoner-name">${row[COL.NAME] || ''}</div>
                                     <div style="font-size:0.6rem; color:#888;">${champName}</div>
                                 </div>
                             </div>
                         </td>
-                        <td>${row[5] || ''}</td>
+                        <td>${row[COL.LEVEL] || ''}</td>
                         <td class="${isWin ? 'result-win' : 'result-loss'}">${resultVal}</td>
-                        <td>${row[7] || 0}/${row[8] || 0}/${row[9] || 0}</td>
-                        <td>${row[10] || 0}</td>
-                        <td>${Number(row[11] || 0).toLocaleString()}</td>
-                        <td>${Number(row[12] || 0).toLocaleString()}</td>
-                        <td style="color:#f1c40f">${Number(row[13] || 0).toLocaleString()}</td>
-                        <td>${row[14] || 0}</td>
-                        <td>${row[15] || 0}</td>
+                        <td>${row[COL.K] || 0}/${row[COL.D] || 0}/${row[COL.A] || 0}</td>
+                        <td>${row[COL.VISION] || 0}</td>
+                        <td>${Number(row[COL.DEALT] || 0).toLocaleString()}</td>
+                        <td>${Number(row[COL.TAKEN] || 0).toLocaleString()}</td>
+                        <td style="color:#f1c40f">${Number(row[COL.GOLD] || 0).toLocaleString()}</td>
+                        <td>${row[COL.CC] || 0}</td>
+                        <td>${row[COL.WARD] || 0}</td>
                         <td>
                             <div class="items-grid">
                                 ${items.map(item => `<div class="item-img" title="${item}"></div>`).join('')}
@@ -1573,8 +1670,8 @@
                 return `
                 <div class="match-block">
                     <div class="match-block-header">
-                        <span class="match-date">매치 #${recentMatches.length - idx}</span>
-                        <span class="match-duration" style="font-size:0.7rem;">데이터 시트</span>
+                        <span class="match-date">${matchDate} (매치 #${recentMatches.length - idx})</span>
+                        <span class="match-duration" style="font-size:0.8rem; color:#ccc;">⏱ ${matchDuration}</span>
                     </div>
                     <div class="match-table-wrapper">
                         <table class="match-table-expanded">
@@ -1585,7 +1682,7 @@
                                     <th>가한피해</th><th>받은피해</th><th>골드</th><th>CC</th><th>핑와</th><th>아이템</th>
                                 </tr>
                             </thead>
-                            <tbody>${rows}</tbody>
+                            <tbody>${rowsHtml}</tbody>
                         </table>
                     </div>
                 </div>`;
@@ -1747,6 +1844,22 @@
             GLOBAL_DATA.eloTimeline = timelineData || [];
             GLOBAL_DATA.db1 = db1Data || [];
 
+            // [추가] DB1 데이터를 기반으로 랭킹 산출 (MMR 내림차순)
+            if (GLOBAL_DATA.db1.length > 0) {
+                const sortedPlayers = GLOBAL_DATA.db1
+                    .filter(r => r[0] && r[0] !== 'ID' && r[0] !== '소환사명') // 헤더 및 빈 줄 제거
+                    .map(r => ({
+                        name: r[0],     // B열
+                        tier: r[1],     // D열
+                        mmr: parseInt(r[2]) || 0 // H열 (숫자로 변환)
+                    }))
+                    .sort((a, b) => b.mmr - a.mmr); // 점수 높은 순 정렬
+
+                // GLOBAL_DATA.ranking을 새로 생성된 데이터로 교체
+                // 포맷: [순위, 이름, MMR, 티어]
+                GLOBAL_DATA.ranking = sortedPlayers.map((p, i) => [i + 1, p.name, p.mmr, p.tier]);
+            }
+
             updatePlayerDatalist();
             initBalancerInputs();
 
@@ -1770,20 +1883,25 @@
 
                 const tbody = document.getElementById('ranking-tbody');
                 tbody.innerHTML = '';
-                GLOBAL_DATA.ranking.slice(0, 15).forEach(row => {
+                GLOBAL_DATA.ranking.slice(0, 10).forEach(row => { // 10명으로 변경
                     const rank = row[0];
                     const name = row[1];
                     const elo = row[2];
-                    let tier = 'GOLD';
-                    if (elo >= 1800) tier = '<span style="color:#d633ff">MASTER</span>';
-                    else if (elo >= 1600) tier = '<span style="color:#00f0ff">DIAMOND</span>';
-                    else if (elo >= 1400) tier = '<span style="color:#39ff14">PLATINUM</span>';
+                    let tierDisplay = row[3]; // DB에서 가져온 티어 사용
+
+                    // 티어 데이터가 없거나 텍스트가 아니면 점수 기반으로 자동 계산 (기존 로직 유지/보완)
+                    if (!tierDisplay) {
+                        if (elo >= 1800) tierDisplay = '<span style="color:#d633ff">MASTER</span>';
+                        else if (elo >= 1600) tierDisplay = '<span style="color:#00f0ff">DIAMOND</span>';
+                        else if (elo >= 1400) tierDisplay = '<span style="color:#39ff14">PLATINUM</span>';
+                        else tierDisplay = 'GOLD';
+                    }
                     
                     tbody.innerHTML += `<tr>
                         <td>${rank}</td>
                         <td>${name} ${rank == 1 ? '👑' : ''}</td>
                         <td style="font-weight:900; color:#fff;">${elo}</td>
-                        <td>${tier}</td>
+                        <td>${tierDisplay}</td>
                     </tr>`;
                 });
             } else {
