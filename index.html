@@ -558,7 +558,7 @@
             gap: 1px;
             justify-content: center;
             flex-wrap: wrap;
-            max-width: 80px;
+            max-width: 120px; /* Increased for text fallback */
             margin: 0 auto;
         }
 
@@ -568,6 +568,7 @@
             border-radius: 2px;
             background: #333;
             border: 1px solid #444;
+            object-fit: cover; /* Added for image scaling */
         }
 
         /* LANE STATS */
@@ -1154,6 +1155,28 @@
             "하이머딩거": "Heimerdinger", "헤카림": "Hecarim", "흐웨이": "Hwei"
         };
 
+        // 한글 아이템명 -> ID 매핑 (주요 아이템만 포함, 필요 시 추가)
+        const ITEM_KR_MAP = {
+            "도란의 검": 1055, "도란의 반지": 1056, "도란의 방패": 1054, "부패 물약": 2033, "충전형 물약": 2031,
+            "제어 와드": 2055, "생명력 물약": 2003, "장화": 1001, "광전사의 군화": 3006, "판금 장화": 3047,
+            "헤르메스의 발걸음": 3111, "아이오니아 장화": 3158, "마법사의 신발": 3020, "신속의 장화": 3009,
+            "무한의 대검": 3031, "삼위일체": 3078, "몰락한 왕의 검": 3153, "구인수의 격노검": 3124, "고속 연사포": 3094,
+            "유령 무희": 3046, "스태틱의 단검": 3087, "루난의 허리케인": 3085, "도미닉 경의 인사": 3036, "필멸자의 운명": 3033,
+            "피바라기": 3072, "징수의 총": 6676, "크라켄 학살자": 6672, "돌풍": 6671, "불멸의 철갑궁": 6673,
+            "나보리 신속검": 6675, "폭풍갈퀴": 3095, "요우무의 유령검": 3142, "드락사르의 황혼검": 3147, "원칙의 원형낫": 6696,
+            "밤의 끝자락": 3814, "그림자 검": 6695, "세릴다의 원한": 6694, "독사 송곳니": 6692,
+            "라바돈의 죽음모자": 3089, "존야의 모래시계": 3157, "밴시의 장막": 3102, "라일라이의 수정홀": 3116,
+            "공허의 지팡이": 3135, "리안드리의 고통": 6653, "루덴의 동반자": 6655, "대천사의 포옹": 3040, "마법공학 로켓 벨트": 3152,
+            "그림자불꽃": 4645, "폭풍 쇄도": 6664, "악의": 6662, "지평선의 초점": 4628, "우주의 추진력": 4629,
+            "태양불꽃 방패": 3068, "가시 갑옷": 3075, "란두인의 예언": 3143, "얼어붙은 심장": 3110, "대자연의 힘": 4401,
+            "정령의 형상": 3065, "워모그의 갑옷": 3083, "가고일 돌갑옷": 3193, "강철심장": 6665, "해신 작쇼": 6665,
+            "얼어붙은 건틀릿": 6662, "심연의 가면": 3001, "증오의 사슬": 6675,
+            "칠흑의 양날 도끼": 3071, "거대한 히드라": 3748, "굶주린 히드라": 3074, "죽음의 무도": 6333, "스테락의 도전": 3053,
+            "쇼진의 창": 3161, "발걸음 분쇄기": 6631, "선혈포식자": 6630, "갈라진 하늘": 6610, "월식": 6692,
+            "수호 천사": 3026, "존야": 3157, "초시계": 2420, "여신의 눈물": 3070,
+            "망원형 개조": 3363, "예언자의 렌즈": 3364, "투명 와드": 3340
+        };
+
         function getChampImg(koreanName) {
             if (!koreanName) return 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Poro_0.jpg';
             const cleanName = koreanName.replace(/\s+/g, '');
@@ -1609,6 +1632,33 @@
             // 최근 5경기 (역순)
             const recentMatches = matchGroups.slice(-5).reverse();
 
+            const resolveItemImage = (val) => {
+                if(!val) return 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/champion-icons/-1.png'; // 빈 슬롯용 투명/기본 이미지 혹은 아예 렌더링 안함
+                
+                const strVal = String(val);
+
+                // 1. 구글 시트 IMAGE 함수 파싱 (=IMAGE("http..."))
+                if (strVal.includes('=IMAGE')) {
+                    const match = strVal.match(/"(http[^"]+)"/);
+                    if (match && match[1]) {
+                        return match[1];
+                    }
+                }
+
+                // 2. 이미 URL인 경우
+                if (strVal.startsWith('http')) return strVal;
+                
+                // 3. 한글 아이템명 -> ID 변환
+                const id = ITEM_KR_MAP[strVal] || ITEM_KR_MAP[strVal.replace(/\s/g, '')];
+                if(id) return `https://ddragon.leagueoflegends.com/cdn/14.2.1/img/item/${id}.png`;
+                
+                // 4. 숫자인 경우 ID로 가정
+                if(!isNaN(strVal)) return `https://ddragon.leagueoflegends.com/cdn/14.2.1/img/item/${strVal}.png`;
+
+                // 매핑 실패시 물음표 아이콘 등 처리 (여기서는 기본 아이콘)
+                return 'https://ddragon.leagueoflegends.com/cdn/14.2.1/img/item/1001.png'; // 기본 부츠나 다른 아이콘
+            };
+
             container.innerHTML = recentMatches.map((block, idx) => {
                 // 1행: 메타 정보
                 const metaRow = block[0];
@@ -1630,7 +1680,10 @@
                     // 아이템 데이터 수집 (Q~V: 6개)
                     const items = [];
                     for(let i = 0; i < 6; i++) {
-                        if(row[COL.ITEM_START + i]) items.push(row[COL.ITEM_START + i]);
+                        // 값이 있는 경우만 추가
+                        const itemVal = row[COL.ITEM_START + i];
+                        // 빈칸도 렌더링을 위해 push할지 결정. 여기서는 빈칸도 표시하는 게 깔끔함
+                        items.push(itemVal || ''); 
                     }
                     const trinket = row[COL.TRINKET] || '';
 
@@ -1660,8 +1713,11 @@
                         <td>${row[COL.WARD] || 0}</td>
                         <td>
                             <div class="items-grid">
-                                ${items.map(item => `<div class="item-img" title="${item}"></div>`).join('')}
-                                ${trinket ? `<div class="item-img" style="border-color:#ffea00;" title="${trinket}"></div>` : ''}
+                                ${items.map(item => {
+                                    if(!item) return '<div class="item-img" style="background:#222;"></div>';
+                                    return `<img class="item-img" src="${resolveItemImage(item)}" title="${item}" onerror="this.style.display='none'">`;
+                                }).join('')}
+                                ${trinket ? `<img class="item-img" style="border-color:#ffea00;" src="${resolveItemImage(trinket)}" title="${trinket}" onerror="this.style.display='none'">` : '<div class="item-img" style="border-color:#ffea00; background:#222;"></div>'}
                             </div>
                         </td>
                     </tr>`;
