@@ -830,8 +830,8 @@
     <div id="loading-overlay">
         <div class="loader"></div>
         <div style="font-family: 'JetBrains Mono'; color: #fff; text-align: center;">
-            CONNECTING...<br>
-            <span id="display-sheet-id" style="font-size: 0.7rem; color: #666;">ID: INITIALIZING...</span>
+            SECURE CONNECTION...<br>
+            <span id="display-sheet-id" style="font-size: 0.7rem; color: #666;">ID: AUTHENTICATING...</span>
             <div id="connection-status" style="margin-top:10px; font-weight:bold; font-size:0.8rem;"></div>
         </div>
     </div>
@@ -839,7 +839,7 @@
     <!-- LOGIN OVERLAY -->
     <div id="login-overlay">
         <h1 class="section-title glitch-text" style="font-size: 4rem; margin-bottom: 20px; text-align: center;">원픽 내전</h1>
-        <div class="section-subtitle" style="margin-bottom: 40px;">LIVE DATA CENTER</div>
+        <div class="section-subtitle" style="margin-bottom: 40px;">PRIVATE DATA CENTER</div>
         
         <div style="width: 100%; max-width: 400px; padding: 0 10px;">
             <input type="text" id="login-input" class="search-box" placeholder="소환사명 입력" style="font-size: 1.2rem; text-align: center; margin-bottom: 15px; border-radius: 0;" onkeyup="if(event.key === 'Enter') attemptLogin()">
@@ -1100,11 +1100,13 @@
 
     <script>
         // ==========================================
-        // [설정 영역]
+        // [설정 영역] 중요: scriptUrl에 배포한 Apps Script URL을 넣으세요.
         // ==========================================
         const CONFIG = {
             testMode: false, 
-            sheetId: '13-xiV7yy5KcEn01u898cpvsv7N5lOLXUQMflTRFMSnY', 
+            // ▼▼▼ 여기에 Apps Script 배포 URL을 붙여넣으세요 ▼▼▼
+            scriptUrl: 'https://script.google.com/macros/s/AKfycbzaaWB565K46UiL8NStr0UVw1YUFBMLYbvC1IwP69VHrzgCFQDxpk_Q8PpJXPEgfL9J2g/exec', 
+            // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
             sheets: {
                 ranking: 'ELO 순위표',
                 logs: 'Logs',
@@ -1113,13 +1115,19 @@
                 champRanking: '챔프 순위',
                 eloTimeline: 'ELO 타임라인',
                 db1: 'DB1' // 참여자 ID 목록 (B열)
+            },
+            // [추가] DB1 컬럼 인덱스 (0부터 시작: A=0, B=1, C=2, D=3... H=7)
+            DB_COL: {
+                NAME: 1, // B열
+                TIER: 3, // D열
+                MMR: 7   // H열
             }
         };
         // ==========================================
 
         const CHAMP_KR_TO_EN = {
             "가렌": "Garen", "갈리오": "Galio", "갱플랭크": "Gangplank", "그라가스": "Gragas", "그레이브즈": "Graves",
-            "그웬": "Gwen", "나르": "Gnar", "나미": "Nami", "나서스": "Nasus", "나피리": "Naafiri",
+            "그wen": "Gwen", "그웬": "Gwen", "나르": "Gnar", "나미": "Nami", "나서스": "Nasus", "나피리": "Naafiri",
             "노틸러스": "Nautilus", "녹턴": "Nocturne", "누누": "Nunu", "누누와윌럼프": "Nunu", "니달리": "Nidalee", "니코": "Neeko",
             "닐라": "Nilah", "다리우스": "Darius", "다이애나": "Diana", "드레이븐": "Draven", "라이즈": "Ryze",
             "라칸": "Rakan", "람머스": "Rammus", "럭스": "Lux", "럼블": "Rumble", "레나타": "Renata", "레나타글라스크": "Renata",
@@ -1155,7 +1163,6 @@
             "하이머딩거": "Heimerdinger", "헤카림": "Hecarim", "흐웨이": "Hwei"
         };
 
-        // 한글 아이템명 -> ID 매핑 (주요 아이템만 포함, 필요 시 추가)
         const ITEM_KR_MAP = {
             "도란의 검": 1055, "도란의 반지": 1056, "도란의 방패": 1054, "부패 물약": 2033, "충전형 물약": 2031,
             "제어 와드": 2055, "생명력 물약": 2003, "장화": 1001, "광전사의 군화": 3006, "판금 장화": 3047,
@@ -1203,14 +1210,26 @@
             }, 3000);
         }
 
-        function getQueryUrl(sheetName, query = 'SELECT *', responseHandler) {
-            const encodedQuery = encodeURIComponent(query);
-            const encodedSheet = encodeURIComponent(sheetName);
-            const tqx = responseHandler ? `out:json;responseHandler:${responseHandler}` : 'out:json';
-            return `https://docs.google.com/spreadsheets/d/${CONFIG.sheetId}/gviz/tq?tqx=${tqx}&sheet=${encodedSheet}&tq=${encodedQuery}`;
+        // Helper to format ISO date strings from Apps Script
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            // If it's already simple string like "2024-01-01 20:00", return it
+            if (dateStr.length < 18 && dateStr.includes(' ')) return dateStr;
+            
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return dateStr; // Return original if not a valid date
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const hour = String(date.getHours()).padStart(2, '0');
+            const minute = String(date.getMinutes()).padStart(2, '0');
+            
+            return `${year}-${month}-${day} ${hour}:${minute}`;
         }
 
         function getMockData(sheetName) {
+             // Mock data unchanged
              if (sheetName === CONFIG.sheets.ranking) {
                 return [
                     [1, 'Faker', 2500], [2, 'Chovy', 2450], [3, 'ShowMaker', 2300], 
@@ -1230,17 +1249,12 @@
                 ];
             }
             if (sheetName === CONFIG.sheets.matches) {
-                // Mocking needs to match the new 12-row logic
-                // Row 1: Date/Time
                 const row1 = ['2024-01-01 20:00', '35:20', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-                // Row 2: Header (ignored)
                 const row2 = ['TEAM', 'POS', 'NAME', '', 'CHAMP', 'LV', 'RESULT', 'K', 'D', 'A', 'VS', 'DMG', 'TNK', 'GLD', 'CC', 'W', 'I1', 'I2', 'I3', 'I4', 'I5', 'I6', 'TRK'];
-                
                 const createPlayer = (team, pos, name, champ, win) => [
                     team, pos, name, '', champ, 18, win, 5, 2, 10, 50, 15000, 15000, 12000, 10, 2, 
                     '무한의 대검', '고속 연사포', '유령 무희', '도미닉 경의 인사', '피바라기', '광전사의 군화', '망원형 개조'
                 ];
-
                 const blueTeam = [
                     createPlayer('BLUE', 'TOP', 'Zeus', '아트록스', '승리'),
                     createPlayer('BLUE', 'JG', 'Oner', '리신', '승리'),
@@ -1255,52 +1269,44 @@
                     createPlayer('RED', 'ADC', 'Peyz', '제리', '패배'),
                     createPlayer('RED', 'SUP', 'Delight', '라칸', '패배')
                 ];
-
                 return [row1, row2, ...blueTeam, ...redTeam];
             }
             return [];
         }
 
-        function fetchData(sheetName, query) {
+        // [MODIFIED] New Fetch Logic using Apps Script URL
+        async function fetchData(sheetName) {
             if (CONFIG.testMode) {
                 return new Promise((resolve) => {
                     setTimeout(() => { resolve(getMockData(sheetName)); }, 300);
                 });
             }
 
-            return new Promise((resolve) => {
-                const callbackName = `__sheetCb_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-                const script = document.createElement('script');
-                let finished = false;
+            if (!CONFIG.scriptUrl || CONFIG.scriptUrl.includes('여기에')) {
+                console.error("Script URL not configured");
+                return null;
+            }
 
-                const cleanup = () => {
-                    if (finished) return;
-                    finished = true;
-                    delete window[callbackName];
-                    script.remove();
-                    clearTimeout(timeout);
-                };
-
-                const timeout = setTimeout(() => {
-                    cleanup();
-                    console.error(`Error fetching ${sheetName}: timeout`);
-                    resolve(null);
-                }, 10000);
-
-                window[callbackName] = (response) => {
-                    cleanup();
-                    if (!response || response.status !== 'ok' || !response.table) {
-                        resolve(null);
-                        return;
-                    }
-                    const rows = response.table.rows.map(r => r.c.map(cell => cell ? (cell.v !== null ? cell.v : '') : ''));
-                    resolve(rows);
-                };
-
-                script.onerror = () => { cleanup(); resolve(null); };
-                script.src = getQueryUrl(sheetName, query, callbackName);
-                document.head.appendChild(script);
-            });
+            try {
+                // Using standard fetch instead of JSONP
+                const response = await fetch(`${CONFIG.scriptUrl}?sheet=${encodeURIComponent(sheetName)}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                // Apps Script returns simple array of arrays, no need to parse gviz structure
+                // But we need to handle potential stringified errors
+                if (typeof data === 'string' && data.startsWith('Error')) {
+                    console.error("Apps Script Error:", data);
+                    return null;
+                }
+                
+                return data;
+            } catch (e) {
+                console.error(`Error fetching ${sheetName}:`, e);
+                return null;
+            }
         }
 
         function attemptLogin() {
@@ -1315,9 +1321,11 @@
 
             let validUser = false;
             if (GLOBAL_DATA.db1 && GLOBAL_DATA.db1.length > 0) {
-                validUser = GLOBAL_DATA.db1.some(row => row[0] && row[0].toString().toLowerCase() === name.toLowerCase());
+                // [FIXED] Use CONFIG.DB_COL.NAME (1) instead of 0
+                validUser = GLOBAL_DATA.db1.some(row => row[CONFIG.DB_COL.NAME] && row[CONFIG.DB_COL.NAME].toString().toLowerCase() === name.toLowerCase());
             }
             if (!validUser) {
+                // Also check if user exists in legacy ranking list (just in case)
                 validUser = GLOBAL_DATA.ranking.some(row => row[1] && row[1].toLowerCase() === name.toLowerCase());
             }
             
@@ -1352,9 +1360,10 @@
 
         function renderPlayerProfile(name) {
             const profileSection = document.getElementById('player-profile');
-            const userDbData = GLOBAL_DATA.db1.find(row => row[0] && row[0].toString().toLowerCase() === name.toLowerCase());
-            const elo = userDbData ? userDbData[2] : 1000;
-            const tier = userDbData ? userDbData[1] : 'UNRANKED';
+            // [FIXED] Use DB_COL indices
+            const userDbData = GLOBAL_DATA.db1.find(row => row[CONFIG.DB_COL.NAME] && row[CONFIG.DB_COL.NAME].toString().toLowerCase() === name.toLowerCase());
+            const elo = userDbData ? userDbData[CONFIG.DB_COL.MMR] : 1000;
+            const tier = userDbData ? userDbData[CONFIG.DB_COL.TIER] : 'UNRANKED';
 
             document.getElementById('p-name').textContent = name;
             document.getElementById('p-elo').textContent = elo;
@@ -1430,7 +1439,10 @@
         }
 
         function updateRisingFalling(logs) {
-            const recentLogs = logs.slice(-50);
+            // [FIXED] Filter out header rows where index 2 is 'Name' or '소환사명'
+            const validLogs = logs.filter(row => row[2] && row[2] !== '소환사명' && row[2] !== 'NAME');
+            
+            const recentLogs = validLogs.slice(-50);
             const changes = recentLogs.map(log => ({
                 name: log[2],
                 change: parseInt(log[5]) || 0
@@ -1464,7 +1476,10 @@
             const tickerDiv = document.getElementById('ticker-content');
             tickerDiv.innerHTML = '';
             
-            if(logs.length === 0) {
+            // [FIXED] Filter headers
+            const validLogs = logs.filter(row => row[1] && row[1] !== 'MATCH_ID' && row[1] !== '경기번호');
+
+            if(validLogs.length === 0) {
                  tickerDiv.innerHTML += `<div class="ticker-item">현재 등록된 경기 기록이 없습니다.</div>`;
                  return;
             }
@@ -1472,8 +1487,8 @@
             const matches = [];
             const processedIds = new Set();
 
-            for (let i = logs.length - 1; i >= 0; i--) {
-                const row = logs[i];
+            for (let i = validLogs.length - 1; i >= 0; i--) {
+                const row = validLogs[i];
                 const matchId = row[1];
                 if (!processedIds.has(matchId)) {
                     if (row[4] === '승리') {
@@ -1488,7 +1503,7 @@
                 tickerDiv.innerHTML += `<div class="ticker-item">${text}</div>`;
             });
 
-            const statusText = CONFIG.testMode ? '[테스트 모드]' : `[LIVE] ${CONFIG.sheetId.substr(0,4)}***`;
+            const statusText = CONFIG.testMode ? '[테스트 모드]' : `[LIVE] ${CONFIG.scriptUrl.substr(-8)}...`;
             tickerDiv.innerHTML += `<div class="ticker-item" style="color:var(--warning);">${statusText}</div>`;
         }
 
@@ -1502,9 +1517,10 @@
             datalist.innerHTML = '';
             
             GLOBAL_DATA.db1.forEach((row, idx) => {
-                if (!row[0] || (idx === 0 && row[0] === 'ID')) return;
+                // [FIXED] Use DB_COL.NAME (1)
+                if (!row[CONFIG.DB_COL.NAME] || (idx === 0)) return;
                 const option = document.createElement('option');
-                option.value = row[0];
+                option.value = row[CONFIG.DB_COL.NAME];
                 datalist.appendChild(option);
             });
         }
@@ -1526,8 +1542,9 @@
                 const name = document.getElementById(`p${i}`).value.trim();
                 if (!name) continue;
                 
-                const found = GLOBAL_DATA.db1.find(r => r[0] && r[0].toString().toLowerCase() === name.toLowerCase());
-                const mmr = found ? parseInt(found[2]) : 1000;
+                // [FIXED] Use DB_COL indices
+                const found = GLOBAL_DATA.db1.find(r => r[CONFIG.DB_COL.NAME] && r[CONFIG.DB_COL.NAME].toString().toLowerCase() === name.toLowerCase());
+                const mmr = found ? parseInt(found[CONFIG.DB_COL.MMR]) : 1000;
                 
                 players.push({ name, mmr });
             }
@@ -1579,22 +1596,7 @@
             const COL = {
                 // A열 (0): 시간, 팀(BLUE/RED)
                 // B열 (1): 플레이타임, 포지션
-                // C열 (2): 소환사 이름
-                // D열 (3): 챔피언 이미지 (사용안함)
-                // E열 (4): 챔피언 이름
-                // F열 (5): 레벨
-                // G열 (6): 결과 (승리/패배)
-                // H열 (7): 킬
-                // I열 (8): 데스
-                // J열 (9): 어시스트
-                // K열 (10): 시야점수
-                // L열 (11): 가한피해량
-                // M열 (12): 받은피해량
-                // N열 (13): 획득 골드
-                // O열 (14): 군중 제어
-                // P열 (15): 제어와드(핑와)
-                // Q~V열 (16~21): 아이템 1~6
-                // W열 (22): 장신구
+                // ... (이전과 동일)
                 META_TIME: 0,   // A열 (Row 1)
                 META_DURATION: 1, // B열 (Row 1)
                 
@@ -1662,7 +1664,8 @@
             container.innerHTML = recentMatches.map((block, idx) => {
                 // 1행: 메타 정보
                 const metaRow = block[0];
-                const matchDate = metaRow[COL.META_TIME] || '-';
+                // [FIXED] Use formatDate helper
+                const matchDate = formatDate(metaRow[COL.META_TIME]) || '-';
                 const matchDuration = metaRow[COL.META_DURATION] || '-';
 
                 // 2행: 헤더 (무시)
@@ -1754,7 +1757,10 @@
 
             const icons = { 'TOP': '🗡️', 'JG': '🌲', 'MID': '⚡', 'ADC': '🎯', 'SUP': '🛡️' };
 
-            grid.innerHTML = laneData.slice(0, 5).map(row => {
+            // [FIXED] Filter header if row[0] is 'Pos' or '포지션'
+            const validData = laneData.filter(row => row[0] && row[0] !== '포지션' && row[0] !== 'POS');
+
+            grid.innerHTML = validData.slice(0, 5).map(row => {
                 const pos = row[0] || '';
                 const games = row[1] || 0;
                 const wins = row[2] || 0;
@@ -1781,7 +1787,10 @@
                 return;
             }
 
-            grid.innerHTML = champData.slice(0, 20).map((row, idx) => {
+            // [FIXED] Filter header if row[0] is 'Champion' or '챔피언'
+            const validData = champData.filter(row => row[0] && row[0] !== '챔피언' && row[0] !== 'CHAMPION');
+
+            grid.innerHTML = validData.slice(0, 20).map((row, idx) => {
                 const name = row[0] || 'Unknown';
                 const games = row[1] || 0;
                 const wins = row[2] || 0;
@@ -1805,8 +1814,11 @@
         function renderEloTimeline(timelineData) {
             if (!timelineData || timelineData.length === 0) return;
 
+            // [FIXED] Filter header
+            const validData = timelineData.filter(row => row[0] && row[0] !== '경기번호' && row[0] !== 'MATCH_ID');
+
             const playerData = {};
-            timelineData.forEach(row => {
+            validData.forEach(row => {
                 const player = row[2];
                 const elo = row[3];
                 const matchNum = row[0];
@@ -1869,23 +1881,24 @@
             const statusText = document.getElementById('status-text');
             const now = new Date();
             
-            displayId.textContent = `ID: ${CONFIG.sheetId.substr(0, 8)}...`;
+            displayId.textContent = `SECURE CONNECTION...`;
             updateTime.textContent = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
 
+            // Removed 'SELECT...' queries because Apps Script returns all data
             const [rankingData, logsData, matchData, laneData, champData, timelineData, db1Data] = await Promise.all([
-                fetchData(CONFIG.sheets.ranking, 'SELECT A, B, C'),
-                fetchData(CONFIG.sheets.logs, 'SELECT *'),
-                fetchData(CONFIG.sheets.matches, 'SELECT *'),
-                fetchData(CONFIG.sheets.laneStats, 'SELECT *'),
-                fetchData(CONFIG.sheets.champRanking, 'SELECT *'),
-                fetchData(CONFIG.sheets.eloTimeline, 'SELECT *'),
-                fetchData(CONFIG.sheets.db1, 'SELECT B, D, H')
+                fetchData(CONFIG.sheets.ranking),
+                fetchData(CONFIG.sheets.logs),
+                fetchData(CONFIG.sheets.matches),
+                fetchData(CONFIG.sheets.laneStats),
+                fetchData(CONFIG.sheets.champRanking),
+                fetchData(CONFIG.sheets.eloTimeline),
+                fetchData(CONFIG.sheets.db1)
             ]);
 
             const isError = !rankingData && !logsData;
             
             if (isError) {
-                showToast('데이터 로드 실패', 'error');
+                showToast('데이터 로드 실패: 스크립트 URL을 확인하세요', 'error');
                 connectionStatus.style.color = 'var(--primary)';
                 connectionStatus.textContent = "ERROR";
             } else {
@@ -1903,11 +1916,12 @@
             // [추가] DB1 데이터를 기반으로 랭킹 산출 (MMR 내림차순)
             if (GLOBAL_DATA.db1.length > 0) {
                 const sortedPlayers = GLOBAL_DATA.db1
-                    .filter(r => r[0] && r[0] !== 'ID' && r[0] !== '소환사명') // 헤더 및 빈 줄 제거
+                    // [FIXED] Use DB_COL.NAME check instead of 0
+                    .filter(r => r[CONFIG.DB_COL.NAME] && r[CONFIG.DB_COL.NAME] !== 'ID' && r[CONFIG.DB_COL.NAME] !== '소환사명') 
                     .map(r => ({
-                        name: r[0],     // B열
-                        tier: r[1],     // D열
-                        mmr: parseInt(r[2]) || 0 // H열 (숫자로 변환)
+                        name: r[CONFIG.DB_COL.NAME],     // B열
+                        tier: r[CONFIG.DB_COL.TIER],     // D열
+                        mmr: parseInt(r[CONFIG.DB_COL.MMR]) || 0 // H열 (숫자로 변환)
                     }))
                     .sort((a, b) => b.mmr - a.mmr); // 점수 높은 순 정렬
 
@@ -1920,46 +1934,54 @@
             initBalancerInputs();
 
             if (GLOBAL_DATA.logs) {
-                const matchIds = new Set(GLOBAL_DATA.logs.map(row => row[1]));
+                // Filter headers for safety
+                const validLogs = GLOBAL_DATA.logs.filter(row => row[1] && row[1] !== 'MATCH_ID' && row[1] !== '경기번호');
+                
+                const matchIds = new Set(validLogs.map(row => row[1]));
                 document.getElementById('dash-total-games').textContent = matchIds.size;
-                const lastLog = GLOBAL_DATA.logs.length > 0 ? GLOBAL_DATA.logs[GLOBAL_DATA.logs.length - 1] : null;
+                const lastLog = validLogs.length > 0 ? validLogs[validLogs.length - 1] : null;
                 if(lastLog) {
                     document.getElementById('dash-last-match-id').textContent = '#' + lastLog[1];
-                    document.getElementById('dash-last-match-date').textContent = lastLog[0] || '-';
+                    // [FIXED] Format date
+                    document.getElementById('dash-last-match-date').textContent = formatDate(lastLog[0]) || '-';
                 }
-                updateRisingFalling(GLOBAL_DATA.logs);
-                updateTicker(GLOBAL_DATA.logs);
+                updateRisingFalling(validLogs);
+                updateTicker(validLogs);
             }
 
             if (GLOBAL_DATA.ranking && GLOBAL_DATA.ranking.length > 0) {
-                const topPlayer = GLOBAL_DATA.ranking[0];
-                document.getElementById('dash-top-player').textContent = topPlayer[1];
-                document.getElementById('dash-top-mmr').textContent = topPlayer[2];
-                document.getElementById('dash-total-players').textContent = GLOBAL_DATA.ranking.length;
+                // If derived from DB1, it's clean. If from sheet, filter header
+                const validRanking = GLOBAL_DATA.ranking.filter(r => r[0] !== 'Rank' && r[0] !== '순위');
+                
+                if (validRanking.length > 0) {
+                    const topPlayer = validRanking[0];
+                    document.getElementById('dash-top-player').textContent = topPlayer[1];
+                    document.getElementById('dash-top-mmr').textContent = topPlayer[2];
+                    document.getElementById('dash-total-players').textContent = validRanking.length;
 
-                const tbody = document.getElementById('ranking-tbody');
-                tbody.innerHTML = '';
-                GLOBAL_DATA.ranking.slice(0, 10).forEach(row => { // 10명으로 변경
-                    const rank = row[0];
-                    const name = row[1];
-                    const elo = row[2];
-                    let tierDisplay = row[3]; // DB에서 가져온 티어 사용
+                    const tbody = document.getElementById('ranking-tbody');
+                    tbody.innerHTML = '';
+                    validRanking.slice(0, 10).forEach(row => { 
+                        const rank = row[0];
+                        const name = row[1];
+                        const elo = row[2];
+                        let tierDisplay = row[3]; 
 
-                    // 티어 데이터가 없거나 텍스트가 아니면 점수 기반으로 자동 계산 (기존 로직 유지/보완)
-                    if (!tierDisplay) {
-                        if (elo >= 1800) tierDisplay = '<span style="color:#d633ff">MASTER</span>';
-                        else if (elo >= 1600) tierDisplay = '<span style="color:#00f0ff">DIAMOND</span>';
-                        else if (elo >= 1400) tierDisplay = '<span style="color:#39ff14">PLATINUM</span>';
-                        else tierDisplay = 'GOLD';
-                    }
-                    
-                    tbody.innerHTML += `<tr>
-                        <td>${rank}</td>
-                        <td>${name} ${rank == 1 ? '👑' : ''}</td>
-                        <td style="font-weight:900; color:#fff;">${elo}</td>
-                        <td>${tierDisplay}</td>
-                    </tr>`;
-                });
+                        if (!tierDisplay) {
+                            if (elo >= 1800) tierDisplay = '<span style="color:#d633ff">MASTER</span>';
+                            else if (elo >= 1600) tierDisplay = '<span style="color:#00f0ff">DIAMOND</span>';
+                            else if (elo >= 1400) tierDisplay = '<span style="color:#39ff14">PLATINUM</span>';
+                            else tierDisplay = 'GOLD';
+                        }
+                        
+                        tbody.innerHTML += `<tr>
+                            <td>${rank}</td>
+                            <td>${name} ${rank == 1 ? '👑' : ''}</td>
+                            <td style="font-weight:900; color:#fff;">${elo}</td>
+                            <td>${tierDisplay}</td>
+                        </tr>`;
+                    });
+                }
             } else {
                 document.getElementById('ranking-tbody').innerHTML = '<tr><td colspan="4" style="text-align:center; color:#666;">데이터 없음</td></tr>';
             }
