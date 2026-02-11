@@ -1104,8 +1104,8 @@
         // ==========================================
         const CONFIG = {
             testMode: false, 
-            // ▼▼▼ 여기에 Apps Script 배포 URL을 붙여넣으세요 ▼▼▼
-            scriptUrl: 'https://script.google.com/macros/s/AKfycbzaaWB565K46UiL8NStr0UVw1YUFBMLYbvC1IwP69VHrzgCFQDxpk_Q8PpJXPEgfL9J2g/exec', 
+            // ▼▼▼ 여기에 Apps Script 배포 URL을 붙여넣으세요 (끝이 /exec로 끝나야 함) ▼▼▼
+            scriptUrl: 'https://script.google.com/macros/s/AKfycbyWxOkB816wXgsvmvB3FZmYrN97Mt680AeQgovBwI5sLTN9Nzp-sCLFBRQFRRb6WcEghQ/exec', 
             // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
             sheets: {
                 ranking: 'ELO 순위표',
@@ -1274,7 +1274,7 @@
             return [];
         }
 
-        // [MODIFIED] New Fetch Logic using Apps Script URL
+        // [MODIFIED] New Fetch Logic to handle Apps Script redirects and text responses
         async function fetchData(sheetName) {
             if (CONFIG.testMode) {
                 return new Promise((resolve) => {
@@ -1288,21 +1288,30 @@
             }
 
             try {
-                // Using standard fetch instead of JSONP
-                const response = await fetch(`${CONFIG.scriptUrl}?sheet=${encodeURIComponent(sheetName)}`);
+                // Apps Script often redirects (302) to googleusercontent.
+                // Standard fetch handles redirects automatically.
+                const url = `${CONFIG.scriptUrl}?sheet=${encodeURIComponent(sheetName)}`;
+                const response = await fetch(url, { method: 'GET', redirect: 'follow' });
+                
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                const data = await response.json();
                 
-                // Apps Script returns simple array of arrays, no need to parse gviz structure
-                // But we need to handle potential stringified errors
-                if (typeof data === 'string' && data.startsWith('Error')) {
-                    console.error("Apps Script Error:", data);
+                // Get text first to debug if it's not JSON (e.g., HTML error page)
+                const textData = await response.text();
+                
+                try {
+                    const jsonData = JSON.parse(textData);
+                     if (jsonData.error) {
+                         console.error(`Server API Error (${sheetName}):`, jsonData.error);
+                         return null;
+                     }
+                    return jsonData;
+                } catch (e) {
+                    console.error(`JSON Parse Error for ${sheetName}. Response might be HTML/Error page.`);
+                    console.log("Raw Response:", textData.substring(0, 500)); // Log first 500 chars
                     return null;
                 }
-                
-                return data;
             } catch (e) {
                 console.error(`Error fetching ${sheetName}:`, e);
                 return null;
@@ -1400,7 +1409,9 @@
             let totalK = 0, totalD = 0, totalA = 0;
             myMatches.forEach(m => {
                 // row[7]=K, row[8]=D, row[9]=A
-                totalK += (m[7] || 0); totalD += (m[8] || 0); totalA += (m[9] || 0);
+                totalK += (m[7] ? parseInt(m[7]) : 0); 
+                totalD += (m[8] ? parseInt(m[8]) : 0); 
+                totalA += (m[9] ? parseInt(m[9]) : 0);
             });
             const avgKda = totalD === 0 ? (totalK + totalA) : ((totalK + totalA) / totalD).toFixed(2);
             document.getElementById('p-kda').textContent = `${avgKda}:1`;
